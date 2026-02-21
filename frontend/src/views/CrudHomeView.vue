@@ -19,12 +19,12 @@
       <section class="oc-group">
         <h2>Estrutura Institucional</h2>
         <div class="oc-grid two">
-          <article class="oc-card" v-if="isChefe || isDirector || isReitor || isAdmin">
+          <article class="oc-card" v-if="isAdmin">
             <h3>Departamentos</h3>
             <p>{{ counts.departments }} registados</p>
             <div class="oc-actions">
               <router-link class="oc-btn manage" to="/departments/manage">Gerir</router-link>
-              <router-link v-if="!isChefe" class="oc-btn new" to="/departments/create">+ Novo</router-link>
+              <router-link class="oc-btn new" to="/departments/create">+ Novo</router-link>
             </div>
           </article>
           <article class="oc-card" v-if="isChefe || isDirector || isReitor || isAdmin">

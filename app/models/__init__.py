@@ -10,6 +10,7 @@ from app.models.professor import Professor
 from app.models.student import Student
 from app.models.student_control import StudentControl
 from app.models.user import User
+from app.models.user_activity import UserActivity
 from app.models.user_scope import UserScope
 
 __all__ = [
@@ -20,6 +21,7 @@ __all__ = [
     "Student",
     "StudentControl",
     "User",
+    "UserActivity",
     "DatasetRun",
     "UserScope",
     "CourseResult",

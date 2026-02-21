@@ -1,11 +1,13 @@
 from typing import Any
 
 from app.repositories.dataset_repository import DatasetRepository
+from app.services.user_activity_service import UserActivityService
 
 
 class DatasetService:
     def __init__(self):
         self.repository = DatasetRepository()
+        self.activity_service = UserActivityService()
 
     def unify_sources(self, sources: list[list[dict[str, Any]]]):
         consolidated = {}
@@ -32,7 +34,7 @@ class DatasetService:
 
         return list(consolidated.values())
 
-    def validate_dataset(self, dataset: list[dict[str, Any]]):
+    def validate_dataset(self, dataset: list[dict[str, Any]], actor_id: int | None = None):
         errors = []
         seen_ids = set()
 
@@ -52,14 +54,28 @@ class DatasetService:
             else:
                 seen_ids.add(identifier)
 
+        if actor_id:
+            self.activity_service.log(
+                user_id=actor_id,
+                actor_id=actor_id,
+                action="DATASET_VALIDATED",
+                description=f"Validou dataset com {len(dataset)} registros e {len(errors)} erros.",
+            )
         return errors
 
-    def unify_and_store(self, sources: list[list[dict[str, Any]]]):
+    def unify_and_store(self, sources: list[list[dict[str, Any]]], actor_id: int | None = None):
         consolidated = self.unify_sources(sources)
-        errors = self.validate_dataset(consolidated)
+        errors = self.validate_dataset(consolidated, actor_id=None)
         run = self.repository.create(
             source_count=len(sources),
             consolidated_data=consolidated,
             validation_errors=errors,
         )
+        if actor_id:
+            self.activity_service.log(
+                user_id=actor_id,
+                actor_id=actor_id,
+                action="DATASET_UNIFIED",
+                description=f"Unificou {len(sources)} fontes em {len(consolidated)} registros.",
+            )
         return run

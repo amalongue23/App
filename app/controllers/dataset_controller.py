@@ -1,4 +1,5 @@
 from flask.views import MethodView
+from flask_jwt_extended import get_jwt_identity
 from flask_smorest import Blueprint
 
 from app.auth.decorators import roles_required
@@ -21,7 +22,8 @@ class DatasetUnifyResource(MethodView):
     @blp.arguments(UnifySourcesSchema)
     @blp.response(200, DatasetRunResponseSchema)
     def post(self, payload):
-        return service.unify_and_store(payload["sources"])
+        actor_id = int(get_jwt_identity())
+        return service.unify_and_store(payload["sources"], actor_id=actor_id)
 
 
 @blp.route("/validate")
@@ -30,4 +32,5 @@ class DatasetValidateResource(MethodView):
     @blp.arguments(DatasetValidateSchema)
     @blp.response(200, DatasetValidationResponseSchema)
     def post(self, payload):
-        return {"errors": service.validate_dataset(payload["dataset"])}
+        actor_id = int(get_jwt_identity())
+        return {"errors": service.validate_dataset(payload["dataset"], actor_id=actor_id)}

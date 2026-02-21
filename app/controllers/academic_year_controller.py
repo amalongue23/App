@@ -1,4 +1,5 @@
 from flask.views import MethodView
+from flask_jwt_extended import get_jwt_identity
 from flask_smorest import Blueprint
 
 from app.auth.decorators import roles_required
@@ -16,7 +17,8 @@ class AcademicYearCollectionResource(MethodView):
     @blp.arguments(AcademicYearCreateSchema)
     @blp.response(201, AcademicYearResponseSchema)
     def post(self, payload):
-        return service.open_new_year(payload["year_label"])
+        actor_id = int(get_jwt_identity())
+        return service.open_new_year(payload["year_label"], actor_id=actor_id)
 
     @roles_required("REITOR")
     @blp.response(200, AcademicYearResponseSchema(many=True))

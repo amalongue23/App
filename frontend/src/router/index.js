@@ -20,6 +20,7 @@ import StudentStatusView from '../views/StudentStatusView.vue'
 import UnitsCreateView from '../views/UnitsCreateView.vue'
 import UnitsManageView from '../views/UnitsManageView.vue'
 import UsersView from '../views/UsersView.vue'
+import UserDetailView from '../views/UserDetailView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
@@ -45,12 +46,13 @@ const router = createRouter({
     { path: '/statistics', name: 'statistics', component: StatisticsView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'CHEFE', 'ADMIN'] } },
     { path: '/academic-years', name: 'academic-years', component: AcademicYearsView, meta: { requiresAuth: true, roles: ['REITOR', 'ADMIN'] } },
     { path: '/users', name: 'users', component: UsersView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'ADMIN'] } },
+    { path: '/users/:id', name: 'user-detail', component: UserDetailView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'ADMIN'] } },
 
     { path: '/units/create', name: 'units-create', component: UnitsCreateView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'ADMIN'] } },
     { path: '/units/manage', name: 'units-manage', component: UnitsManageView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'ADMIN'] } },
 
-    { path: '/departments/create', name: 'departments-create', component: DepartmentsCreateView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'ADMIN'] } },
-    { path: '/departments/manage', name: 'departments-manage', component: DepartmentsManageView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'CHEFE', 'ADMIN'] } },
+    { path: '/departments/create', name: 'departments-create', component: DepartmentsCreateView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
+    { path: '/departments/manage', name: 'departments-manage', component: DepartmentsManageView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
 
     { path: '/courses/create', name: 'courses-create', component: CoursesCreateView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'CHEFE', 'ADMIN'] } },
     { path: '/courses/manage', name: 'courses-manage', component: CoursesManageView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'CHEFE', 'ADMIN'] } },

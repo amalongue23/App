@@ -1,97 +1,118 @@
 <template>
-  <CreateEntityLayout
-    title="Cadastro de Usuário"
-    subtitle="Preencha as informações abaixo para cadastrar um novo usuário na aplicação."
-    section-label="Usuários"
-    section-route="/users"
-  >
-    <form class="create-form" @submit.prevent="createUser">
+  <main class="admin-layout users-v2-layout">
+    <SideNav />
+
+    <section class="content-area users-v2-content">
+      <header class="users-v2-head">
+        <div>
+          <h1>Gestão de Usuários</h1>
+          <p>Listagem, roles e edição de usuários</p>
+        </div>
+        <div class="users-v2-head-actions">
+          <button class="btn btn-primary" type="button" @click="showCreate = !showCreate">+ Novo Usuário</button>
+          <input v-model="searchTerm" placeholder="Pesquisar..." />
+        </div>
+      </header>
+
       <p class="success" v-if="successMessage">{{ successMessage }}</p>
       <p class="error" v-if="errorMessage">{{ errorMessage }}</p>
 
-      <div class="create-field">
-        <label class="create-label">* Nome Completo</label>
-        <input v-model="form.full_name" placeholder="Digite o nome completo" required />
-      </div>
-
-      <div class="form-grid-2">
-        <div class="create-field">
-          <label class="create-label">* Username</label>
-          <input v-model="form.username" placeholder="Digite o username" required />
-        </div>
-        <div class="create-field">
-          <label class="create-label">* Papel</label>
+      <section v-if="showCreate" class="users-v2-create-card">
+        <h3>Novo Usuário</h3>
+        <form class="users-v2-create-form" @submit.prevent="createUser">
+          <input v-model="form.full_name" placeholder="Nome completo" required />
+          <input v-model="form.username" placeholder="Username" required />
+          <input v-model="form.password" type="password" placeholder="Senha" required />
           <select v-model="form.role" required>
-            <option value="">Selecione o papel</option>
+            <option value="" disabled>Selecione o papel</option>
+            <option value="ADMIN">ADMIN</option>
             <option value="REITOR">REITOR</option>
             <option value="DIRETOR">DIRETOR</option>
             <option value="CHEFE">CHEFE</option>
+            <option value="COORDENADOR">COORDENADOR</option>
+            <option value="SECRETARIA">SECRETARIA</option>
+            <option value="PROFESSOR">PROFESSOR</option>
+            <option value="ASSISTENTE">ASSISTENTE</option>
           </select>
+          <button class="btn btn-primary" type="submit">Cadastrar</button>
+        </form>
+      </section>
+
+      <section class="users-v2-table-card">
+        <div class="users-v2-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th @click="toggleSort('id')">ID</th>
+                <th @click="toggleSort('full_name')">Nome</th>
+                <th @click="toggleSort('role')">Papel</th>
+                <th @click="toggleSort('is_active')">Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in paginatedUsers" :key="user.id">
+                <td>{{ user.id }}</td>
+                <td>{{ user.full_name }}</td>
+                <td>
+                  <span class="users-role-badge" :class="roleClass(user.role)">{{ roleLabel(user.role) }}</span>
+                </td>
+                <td>
+                  <span class="users-status-badge" :class="user.is_active ? 'active' : 'inactive'">
+                    {{ user.is_active ? 'Ativo' : 'Inativo' }}
+                  </span>
+                </td>
+                <td class="users-actions-cell">
+                  <div class="users-action-wrap">
+                    <button class="btn btn-ghost" type="button" @click="openUserDetail(user.id)">{{ actionLabel }}</button>
+                    <button class="users-dropdown-toggle" type="button" @click="toggleActionMenu(user.id)">⌄</button>
+                    <div v-if="openActionMenuId === user.id" class="users-dropdown-menu">
+                      <button type="button" @click="openUserDetail(user.id)">{{ actionLabel }}</button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </div>
 
-      <div class="create-field">
-        <label class="create-label">* Senha</label>
-        <input v-model="form.password" type="password" placeholder="Digite a senha" required />
-      </div>
+        <div class="users-v2-pagination">
+          <span>Mostrando {{ pageStart }} - {{ pageEnd }} de {{ filteredUsers.length }} usuários</span>
+          <div class="users-v2-pagination-actions">
+            <button class="btn btn-ghost" type="button" @click="prevPage" :disabled="currentPage === 1">Anterior</button>
+            <span>Página {{ currentPage }}</span>
+            <button class="btn btn-ghost" type="button" @click="nextPage" :disabled="currentPage >= totalPages">Próxima</button>
+          </div>
+        </div>
+      </section>
 
-      <div class="create-actions">
-        <button class="btn btn-ghost" type="button" @click="resetForm">Cancelar</button>
-        <button class="btn btn-primary" type="submit">Cadastrar Usuário</button>
-      </div>
-    </form>
-
-    <section class="create-list-panel">
-      <div class="ops-toolbar">
-        <button class="btn btn-ghost" type="button" @click="listUsers">Atualizar Lista</button>
-        <input v-model="searchTerm" placeholder="Filtrar por nome/username/papel" />
-      </div>
-      <div class="ops-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th @click="toggleSort('id')">ID</th>
-              <th @click="toggleSort('full_name')">Nome</th>
-              <th @click="toggleSort('username')">Username</th>
-              <th @click="toggleSort('role')">Papel</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in paginatedUsers" :key="user.id">
-              <td>{{ user.id }}</td>
-              <td>{{ user.full_name }}</td>
-              <td>{{ user.username }}</td>
-              <td>{{ user.role }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="ops-pagination" v-if="filteredUsers.length">
-        <button class="btn btn-ghost" type="button" @click="prevPage" :disabled="currentPage === 1">Anterior</button>
-        <span>Página {{ currentPage }} de {{ totalPages }}</span>
-        <button class="btn btn-ghost" type="button" @click="nextPage" :disabled="currentPage >= totalPages">Próxima</button>
-      </div>
-      <p class="ops-tip" v-else>Nenhum registro encontrado.</p>
     </section>
-  </CreateEntityLayout>
+  </main>
 </template>
 
 <script setup>
 import axios from 'axios'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
-import CreateEntityLayout from '../components/CreateEntityLayout.vue'
+import SideNav from '../components/SideNav.vue'
 import api from '../services/api'
+import { useAuthStore } from '../stores/auth'
 
 const users = ref([])
 const errorMessage = ref('')
 const successMessage = ref('')
 const searchTerm = ref('')
+const showCreate = ref(false)
 const currentPage = ref(1)
-const pageSize = 8
+const pageSize = 10
 const sortBy = ref('id')
 const sortDir = ref('asc')
+const openActionMenuId = ref(0)
+const router = useRouter()
+const authStore = useAuthStore()
 const form = reactive({ full_name: '', username: '', password: '', role: '' })
+const actionLabel = computed(() => (authStore.user?.role === 'ADMIN' ? 'Ver / Editar' : 'Ver'))
 
 const filteredUsers = computed(() => {
   const q = searchTerm.value.trim().toLowerCase()
@@ -106,6 +127,7 @@ const sortedUsers = computed(() => {
   return list.sort((a, b) => {
     const va = a[key]
     const vb = b[key]
+    if (typeof va === 'boolean' && typeof vb === 'boolean') return (Number(va) - Number(vb)) * dir
     if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir
     return String(va ?? '').localeCompare(String(vb ?? '')) * dir
   })
@@ -116,6 +138,8 @@ const paginatedUsers = computed(() => {
   const start = (currentPage.value - 1) * pageSize
   return sortedUsers.value.slice(start, start + pageSize)
 })
+const pageStart = computed(() => (filteredUsers.value.length ? (currentPage.value - 1) * pageSize + 1 : 0))
+const pageEnd = computed(() => Math.min(currentPage.value * pageSize, filteredUsers.value.length))
 
 watch(searchTerm, () => {
   currentPage.value = 1
@@ -130,9 +154,8 @@ function nextPage() {
 }
 
 function toggleSort(column) {
-  if (sortBy.value === column) {
-    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
-  } else {
+  if (sortBy.value === column) sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
+  else {
     sortBy.value = column
     sortDir.value = 'asc'
   }
@@ -155,12 +178,38 @@ function parseError(error) {
   return 'Erro na operação.'
 }
 
+function roleLabel(role) {
+  if (role === 'REITOR') return 'REITOR'
+  if (role === 'DIRETOR') return 'DIRETOR'
+  if (role === 'CHEFE') return 'CHEFE DEPARTAMENTO'
+  if (role === 'ADMIN') return 'ADMINISTRADOR'
+  if (role === 'COORDENADOR') return 'COORDENADOR DE CURSO'
+  return role
+}
+
+function roleClass(role) {
+  if (role === 'REITOR') return 'reitor'
+  if (role === 'DIRETOR') return 'diretor'
+  if (role === 'CHEFE') return 'chefe'
+  if (role === 'ADMIN') return 'admin'
+  if (role === 'COORDENADOR') return 'coord'
+  return 'neutral'
+}
+
+function openUserDetail(userId) {
+  router.push({ name: 'user-detail', params: { id: userId } })
+  openActionMenuId.value = 0
+}
+
+function toggleActionMenu(id) {
+  openActionMenuId.value = openActionMenuId.value === id ? 0 : id
+}
+
 async function listUsers() {
   try {
     resetMessages()
     const r = await api.get('/api/users')
     users.value = r.data
-    successMessage.value = 'Lista de usuários carregada.'
   } catch (error) {
     errorMessage.value = parseError(error)
   }
@@ -171,6 +220,7 @@ async function createUser() {
     resetMessages()
     await api.post('/api/users', form)
     resetForm()
+    showCreate.value = false
     await listUsers()
     successMessage.value = 'Usuário criado com sucesso.'
   } catch (error) {

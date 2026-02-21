@@ -1,4 +1,4 @@
-# MPUNA Academic API
+# Sistema de Análise e Visualização de dados para uma Universidade (Backend API Flask + Frontend Vue.js)
 
 API em Flask com arquitetura MVC, princípios SOLID, padrão Repository/Service, JWT, MySQL e documentação Swagger.
 
@@ -26,7 +26,7 @@ API em Flask com arquitetura MVC, princípios SOLID, padrão Repository/Service,
    python run.py
    ```
 
-## Frontend (Vue)
+## Frontend (Vue.js)
 1. Entrar na pasta:
    ```bash
    cd frontend

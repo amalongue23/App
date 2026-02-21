@@ -7,6 +7,7 @@ from app.repositories.academic_year_repository import AcademicYearRepository
 from app.repositories.department_repository import DepartmentRepository
 from app.repositories.student_control_repository import StudentControlRepository
 from app.repositories.student_repository import StudentRepository
+from app.services.user_activity_service import UserActivityService
 
 
 class StudentService:
@@ -15,6 +16,7 @@ class StudentService:
         self.department_repository = DepartmentRepository()
         self.control_repository = StudentControlRepository()
         self.academic_year_repository = AcademicYearRepository()
+        self.activity_service = UserActivityService()
 
     def create(self, user_id: int, data: dict):
         self._enforce_write_permission(user_id=user_id)
@@ -24,7 +26,14 @@ class StudentService:
             abort(404, message="Department not found")
         self._enforce_scope(user_id=user_id, department_id=data["department_id"])
         self._ensure_course(data.get("course_id"), data["department_id"])
-        return self.repository.create(**data)
+        created = self.repository.create(**data)
+        self.activity_service.log(
+            user_id=user_id,
+            actor_id=user_id,
+            action="STUDENT_CREATED",
+            description=f"Cadastrou estudante '{created.full_name}'.",
+        )
+        return created
 
     def update(self, user_id: int, student_id: int, data: dict):
         self._enforce_write_permission(user_id=user_id)
@@ -43,7 +52,14 @@ class StudentService:
         department_id = data.get("department_id", student.department_id)
         if "course_id" in data:
             self._ensure_course(data.get("course_id"), department_id)
-        return self.repository.update(student, **data)
+        updated = self.repository.update(student, **data)
+        self.activity_service.log(
+            user_id=user_id,
+            actor_id=user_id,
+            action="STUDENT_UPDATED",
+            description=f"Atualizou estudante '{updated.full_name}'.",
+        )
+        return updated
 
     def get_by_id(self, user_id: int, student_id: int):
         student = self.repository.get_by_id(student_id)
@@ -80,6 +96,13 @@ class StudentService:
             )
             created += 1
 
+        self.activity_service.log(
+            user_id=user_id,
+            actor_id=user_id,
+            action="STUDENT_CONTROL_TABLE_CREATED",
+            description=f"Criou tabela de controlo para departamento {department_id} no ano {academic_year_id}.",
+        )
+
         return {
             "department_id": department_id,
             "academic_year_id": academic_year_id,
@@ -113,9 +136,21 @@ class StudentService:
                 academic_year_id=academic_year_id,
                 status=status,
             )
+            self.activity_service.log(
+                user_id=user_id,
+                actor_id=user_id,
+                action="STUDENT_STATUS_UPDATED",
+                description=f"Definiu status '{status}' para estudante {student.registration_number} no ano {year.year_label}.",
+            )
             return control
-
-        return self.control_repository.update(control, status=status)
+        updated = self.control_repository.update(control, status=status)
+        self.activity_service.log(
+            user_id=user_id,
+            actor_id=user_id,
+            action="STUDENT_STATUS_UPDATED",
+            description=f"Alterou status para '{status}' do estudante {student.registration_number} no ano {year.year_label}.",
+        )
+        return updated
 
     def get_status(self, user_id: int, student_id: int, academic_year_id: int):
         from flask_smorest import abort

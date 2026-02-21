@@ -14,7 +14,7 @@ from app.controllers.student_controller import blp as student_blp
 from app.controllers.unit_controller import blp as unit_blp
 from app.controllers.user_controller import blp as user_blp
 from app.extensions import api, db, jwt
-from app.models import academic_year, activity_log, course, course_result, dataset_run, department, department_notice, organizational_unit, professor, student, student_control, user, user_scope  # noqa: F401
+from app.models import academic_year, activity_log, course, course_result, dataset_run, department, department_notice, organizational_unit, professor, student, student_control, user, user_activity, user_scope  # noqa: F401
 from app.models.user import User
 
 

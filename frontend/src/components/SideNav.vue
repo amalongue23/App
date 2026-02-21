@@ -77,6 +77,7 @@ const icons = {
 const items = [
   { key: 'dashboard', label: 'Dashboard', to: '/dashboard', icon: icons.dashboard },
   { key: 'statistics', label: 'Estatísticas', to: '/statistics', icon: icons.statistics },
+  { key: 'academic-years', label: 'Gestão de Ano', to: '/academic-years', icon: icons.academic },
   { key: 'operations', label: 'Gestão Académica', to: '/operations', icon: icons.academic },
   { key: 'units', label: 'Unidades Orgânicas', to: '/units/manage', icon: icons.units },
   { key: 'departments', label: 'Departamentos', to: '/departments/manage', icon: icons.departments },
@@ -88,10 +89,13 @@ const items = [
 
 const visibleItems = computed(() => {
   const role = authStore.user?.role
-  if (role === 'CHEFE') {
-    return items.filter((item) => item.key !== 'units')
+  if (role === 'ADMIN') {
+    return items
   }
-  return items
+  if (role === 'CHEFE') {
+    return items.filter((item) => item.key !== 'units' && item.key !== 'departments' && item.key !== 'academic-years')
+  }
+  return items.filter((item) => item.key !== 'departments' && item.key !== 'academic-years')
 })
 
 const initials = computed(() => {
@@ -119,6 +123,7 @@ function isActive(key) {
   const name = String(route.name || '')
   if (key === 'dashboard') return name.startsWith('dashboard')
   if (key === 'statistics') return name === 'statistics'
+  if (key === 'academic-years') return name === 'academic-years'
   if (key === 'operations') return name === 'operations'
   if (key === 'units') return name.startsWith('units-')
   if (key === 'departments') return name.startsWith('departments-')

@@ -1,4 +1,5 @@
 from flask.views import MethodView
+from flask_jwt_extended import get_jwt_identity
 from flask_smorest import Blueprint
 
 from app.auth.decorators import roles_required
@@ -16,7 +17,8 @@ class CourseCollectionResource(MethodView):
     @blp.arguments(CourseCreateSchema)
     @blp.response(201, CourseResponseSchema)
     def post(self, payload):
-        return service.create(payload)
+        actor_id = int(get_jwt_identity())
+        return service.create(payload, actor_id=actor_id)
 
 
 @blp.route("/<int:course_id>")
@@ -25,7 +27,8 @@ class CourseResource(MethodView):
     @blp.arguments(CourseUpdateSchema)
     @blp.response(200, CourseResponseSchema)
     def put(self, payload, course_id):
-        return service.update(course_id, payload)
+        actor_id = int(get_jwt_identity())
+        return service.update(course_id, payload, actor_id=actor_id)
 
 
 @blp.route("/by-department/<int:department_id>")

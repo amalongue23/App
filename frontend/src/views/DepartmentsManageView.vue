@@ -1,34 +1,252 @@
 <template>
-  <main class="admin-layout">
+  <main class="admin-layout departments-v2-layout">
     <SideNav />
-    <section class="content-area"><section class="ops-card">
-    <OperationsNav title="Gestão de Departamentos" subtitle="Listagem e atualização em tela separada" />
-    <div class="ops-toolbar"><button class="btn btn-ghost" @click="listAll">Atualizar Lista</button><select v-model.number="unitFilterId" @change="listByUnit"><option :value="0">Todas unidades</option><option v-for="u in units" :key="u.id" :value="u.id">{{ u.name }}</option></select><input v-model="searchTerm" placeholder="Filtrar por nome/código" /></div>
-    <div class="ops-table-wrap"><table><thead><tr><th @click="toggleSort('id')">ID</th><th @click="toggleSort('name')">Nome</th><th @click="toggleSort('code')">Código</th><th @click="toggleSort('unit_id')">Unidade</th><th>Ações</th></tr></thead><tbody><tr v-for="item in paginatedItems" :key="item.id"><td>{{ item.id }}</td><td>{{ item.name }}</td><td>{{ item.code }}</td><td>{{ unitName(item.unit_id) }}</td><td><button class="btn btn-ghost" @click="selectForEdit(item)">Editar</button></td></tr></tbody></table></div>
-    <div class="ops-pagination" v-if="filteredItems.length"><button class="btn btn-ghost" @click="prevPage" :disabled="currentPage===1">Anterior</button><span>Página {{ currentPage }} de {{ totalPages }}</span><button class="btn btn-ghost" @click="nextPage" :disabled="currentPage>=totalPages">Próxima</button></div>
 
-    <article v-if="selectedItem" class="ops-edit-box"><h3>Atualizar Departamento: {{ selectedItem.name }}</h3><form class="ops-form" @submit.prevent="updateDepartment"><input v-model="updateForm.name" placeholder="Nome" /><input v-model="updateForm.code" placeholder="Código" /><select v-model.number="updateForm.unit_id"><option v-for="u in units" :key="u.id" :value="u.id">{{ u.name }}</option></select><button class="btn btn-primary" type="submit">Salvar Atualização</button></form></article>
+    <section class="content-area departments-v2-content">
+      <header class="departments-v2-head">
+        <div>
+          <h1>Gestão de Departamentos</h1>
+          <p>Listagem e atualização em tela separada.</p>
+        </div>
+        <div class="departments-v2-head-actions">
+          <router-link class="btn btn-primary" to="/departments/create">+ Novo Departamento</router-link>
+          <button class="btn btn-ghost" type="button" @click="exportCsv">Exportar</button>
+        </div>
+      </header>
 
-    <p class="success" v-if="successMessage">{{ successMessage }}</p><p class="error" v-if="errorMessage">{{ errorMessage }}</p>
-  </section></section></main>
+      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+      <p v-if="successMessage" class="success">{{ successMessage }}</p>
+
+      <section class="departments-v2-shell">
+        <div class="departments-v2-total">Total de <strong>Departamentos</strong> {{ filteredItems.length }}</div>
+
+        <div class="departments-v2-main">
+          <aside class="departments-v2-filter-card">
+            <h3>Unidade Orgânica</h3>
+            <select v-model.number="draftUnitId">
+              <option :value="0">Todas unidades</option>
+              <option v-for="u in units" :key="u.id" :value="u.id">{{ u.name }}</option>
+            </select>
+            <div class="departments-v2-filter-actions">
+              <button class="btn btn-primary" type="button" @click="applyFilters">Aplicar Filtro</button>
+              <button class="btn btn-ghost" type="button" @click="clearFilters">Limpar</button>
+            </div>
+          </aside>
+
+          <article class="departments-v2-table-card">
+            <div class="departments-v2-search-row">
+              <input v-model="draftSearch" placeholder="Filtrar por nome ou código" />
+              <button class="btn btn-primary" type="button" @click="applyFilters">Aplicar Filtro</button>
+              <button class="btn btn-ghost" type="button" @click="clearSearch">Limpar</button>
+            </div>
+
+            <div class="departments-v2-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th @click="toggleSort('id')">ID</th>
+                    <th @click="toggleSort('name')">Nome</th>
+                    <th @click="toggleSort('code')">Código</th>
+                    <th>Unidade</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="item in paginatedItems" :key="item.id">
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.code }}</td>
+                    <td>{{ unitName(item.unit_id) }}</td>
+                    <td class="dept-actions-cell">
+                      <div class="dept-action-wrap">
+                        <button class="btn btn-primary btn-small" type="button" @click="selectForEdit(item)">Editar</button>
+                        <button class="dept-dropdown-toggle" type="button" @click="toggleRowMenu(item.id)">⌄</button>
+                        <div v-if="openMenuId === item.id" class="dept-dropdown-menu">
+                          <button type="button" @click="selectForEdit(item)">Editar</button>
+                          <button type="button" @click="manageStaff(item)">Gerenciar Funcionários</button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="departments-v2-pagination" v-if="totalPages > 1">
+              <button class="btn btn-ghost" type="button" @click="prevPage" :disabled="currentPage===1">Anterior</button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button class="btn btn-ghost" type="button" @click="nextPage" :disabled="currentPage>=totalPages">Próxima</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section v-if="selectedItem" class="departments-v2-edit">
+        <h3>Editar Departamento: {{ selectedItem.name }}</h3>
+        <form class="departments-v2-edit-form" @submit.prevent="updateDepartment">
+          <input v-model="updateForm.name" placeholder="Nome" />
+          <input v-model="updateForm.code" placeholder="Código" />
+          <select v-model.number="updateForm.unit_id">
+            <option v-for="u in units" :key="u.id" :value="u.id">{{ u.name }}</option>
+          </select>
+          <button class="btn btn-primary" type="submit">Salvar</button>
+        </form>
+      </section>
+    </section>
+  </main>
 </template>
+
 <script setup>
-import axios from 'axios'; import { computed, onMounted, reactive, ref, watch } from 'vue'
-import OperationsNav from '../components/OperationsNav.vue'; import SideNav from '../components/SideNav.vue'; import api from '../services/api'
-const items=ref([]), units=ref([]), selectedItem=ref(null), successMessage=ref(''), errorMessage=ref(''), unitFilterId=ref(0), searchTerm=ref(''), currentPage=ref(1), sortBy=ref('id'), sortDir=ref('asc'); const pageSize=6
-const updateForm=reactive({ name:'', code:'', unit_id:0 })
-const err=(e)=>axios.isAxiosError(e)?(e.response?.data?.message||'Erro na operação.'):'Erro na operação.'
-const filteredItems=computed(()=>{const q=searchTerm.value.trim().toLowerCase(); if(!q)return items.value; return items.value.filter(i=>`${i.name} ${i.code}`.toLowerCase().includes(q))})
-const sortedItems=computed(()=>{const list=[...filteredItems.value]; const k=sortBy.value; const d=sortDir.value==='asc'?1:-1; return list.sort((a,b)=>(typeof a[k]==='number'&&typeof b[k]==='number'?a[k]-b[k]:String(a[k]??'').localeCompare(String(b[k]??'')))*d)})
-const totalPages=computed(()=>Math.max(1,Math.ceil(filteredItems.value.length/pageSize))); const paginatedItems=computed(()=>sortedItems.value.slice((currentPage.value-1)*pageSize,(currentPage.value-1)*pageSize+pageSize))
-watch(searchTerm,()=>currentPage.value=1)
-const prevPage=()=>{if(currentPage.value>1)currentPage.value--}; const nextPage=()=>{if(currentPage.value<totalPages.value)currentPage.value++}
-const toggleSort=(c)=>{if(sortBy.value===c)sortDir.value=sortDir.value==='asc'?'desc':'asc'; else{sortBy.value=c; sortDir.value='asc'}}
-const unitName=(id)=>units.value.find(u=>u.id===id)?.name||id
-async function loadUnits(){ const r=await api.get('/api/units'); units.value=r.data }
-async function listAll(){ const r=await api.get('/api/departments'); items.value=r.data }
-async function listByUnit(){ try{ if(!unitFilterId.value){ await listAll(); return } const r=await api.get(`/api/departments/by-unit/${unitFilterId.value}`); items.value=r.data }catch(e){errorMessage.value=err(e)} }
-function selectForEdit(item){ selectedItem.value=item; updateForm.name=item.name; updateForm.code=item.code; updateForm.unit_id=item.unit_id }
-async function updateDepartment(){ try{successMessage.value=''; errorMessage.value=''; const payload={}; if(updateForm.name)payload.name=updateForm.name; if(updateForm.code)payload.code=updateForm.code; if(updateForm.unit_id)payload.unit_id=updateForm.unit_id; await api.put(`/api/departments/${selectedItem.value.id}`,payload); successMessage.value='Departamento atualizado com sucesso.'; await listByUnit() }catch(e){errorMessage.value=err(e)} }
-onMounted(async()=>{try{await loadUnits(); await listAll()}catch(e){errorMessage.value=err(e)}})
+import axios from 'axios'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+import SideNav from '../components/SideNav.vue'
+import api from '../services/api'
+
+const router = useRouter()
+const items = ref([])
+const units = ref([])
+const selectedItem = ref(null)
+const successMessage = ref('')
+const errorMessage = ref('')
+const currentPage = ref(1)
+const sortBy = ref('id')
+const sortDir = ref('asc')
+const pageSize = 8
+const openMenuId = ref(0)
+
+const draftUnitId = ref(0)
+const appliedUnitId = ref(0)
+const draftSearch = ref('')
+const appliedSearch = ref('')
+
+const updateForm = reactive({ name: '', code: '', unit_id: 0 })
+
+function err(e) {
+  return axios.isAxiosError(e) ? e.response?.data?.message || 'Erro na operação.' : 'Erro na operação.'
+}
+
+const filteredItems = computed(() => {
+  const q = appliedSearch.value.trim().toLowerCase()
+  return items.value.filter((i) => {
+    const byUnit = appliedUnitId.value ? i.unit_id === appliedUnitId.value : true
+    const bySearch = q ? `${i.name} ${i.code}`.toLowerCase().includes(q) : true
+    return byUnit && bySearch
+  })
+})
+
+const sortedItems = computed(() => {
+  const list = [...filteredItems.value]
+  const key = sortBy.value
+  const dir = sortDir.value === 'asc' ? 1 : -1
+  return list.sort((a, b) => (typeof a[key] === 'number' && typeof b[key] === 'number' ? a[key] - b[key] : String(a[key] ?? '').localeCompare(String(b[key] ?? ''))) * dir)
+})
+
+const totalPages = computed(() => Math.max(1, Math.ceil(sortedItems.value.length / pageSize)))
+const paginatedItems = computed(() => sortedItems.value.slice((currentPage.value - 1) * pageSize, (currentPage.value - 1) * pageSize + pageSize))
+
+function unitName(id) {
+  return units.value.find((u) => u.id === id)?.name || '-'
+}
+
+function toggleSort(column) {
+  if (sortBy.value === column) sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
+  else {
+    sortBy.value = column
+    sortDir.value = 'asc'
+  }
+}
+
+function prevPage() {
+  if (currentPage.value > 1) currentPage.value -= 1
+}
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) currentPage.value += 1
+}
+
+function clearSearch() {
+  draftSearch.value = ''
+  applyFilters()
+}
+
+function clearFilters() {
+  draftUnitId.value = 0
+  draftSearch.value = ''
+  applyFilters()
+}
+
+function applyFilters() {
+  appliedUnitId.value = draftUnitId.value
+  appliedSearch.value = draftSearch.value
+  currentPage.value = 1
+  openMenuId.value = 0
+}
+
+function toggleRowMenu(id) {
+  openMenuId.value = openMenuId.value === id ? 0 : id
+}
+
+function selectForEdit(item) {
+  openMenuId.value = 0
+  selectedItem.value = item
+  updateForm.name = item.name
+  updateForm.code = item.code
+  updateForm.unit_id = item.unit_id
+}
+
+function manageStaff(item) {
+  openMenuId.value = 0
+  router.push({ name: 'users', query: { department_id: String(item.id) } })
+}
+
+async function loadUnits() {
+  const r = await api.get('/api/units')
+  units.value = r.data
+}
+
+async function listAll() {
+  const r = await api.get('/api/departments')
+  items.value = r.data
+}
+
+async function updateDepartment() {
+  try {
+    successMessage.value = ''
+    errorMessage.value = ''
+    const payload = {}
+    if (updateForm.name) payload.name = updateForm.name
+    if (updateForm.code) payload.code = updateForm.code
+    if (updateForm.unit_id) payload.unit_id = updateForm.unit_id
+    await api.put(`/api/departments/${selectedItem.value.id}`, payload)
+    successMessage.value = 'Departamento atualizado com sucesso.'
+    await listAll()
+    applyFilters()
+  } catch (e) {
+    errorMessage.value = err(e)
+  }
+}
+
+function exportCsv() {
+  const header = ['id', 'nome', 'codigo', 'unidade']
+  const lines = filteredItems.value.map((r) => [r.id, r.name, r.code, unitName(r.unit_id)].join(','))
+  const csv = [header.join(','), ...lines].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'departamentos.csv'
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+onMounted(async () => {
+  try {
+    await loadUnits()
+    await listAll()
+  } catch (e) {
+    errorMessage.value = err(e)
+  }
+})
 </script>
