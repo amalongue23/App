@@ -28,7 +28,8 @@
       <section class="user-detail-card">
         <div class="user-detail-profile">
           <div class="user-detail-avatar-block">
-            <div class="user-detail-avatar">{{ initials }}</div>
+            <img v-if="user.photo_url" class="user-detail-avatar-image" :src="user.photo_url" alt="Foto do usuário" />
+            <div v-else class="user-detail-avatar">{{ initials }}</div>
           </div>
           <div class="user-detail-main">
             <h2>{{ user.full_name || '-' }}</h2>
@@ -73,6 +74,34 @@
                 <option value="SECRETARIA">SECRETARIA</option>
                 <option value="PROFESSOR">PROFESSOR</option>
                 <option value="ASSISTENTE">ASSISTENTE</option>
+              </select>
+            </label>
+            <label v-if="showUnitField">
+              <span>Unidade Orgânica</span>
+              <select v-model.number="form.unit_id" :disabled="!isAdmin" required>
+                <option :value="0" disabled>Selecione a unidade</option>
+                <option v-if="form.unit_id && !hasUnitOption(form.unit_id)" :value="form.unit_id">Unidade #{{ form.unit_id }}</option>
+                <option v-for="unit in units" :key="unit.id" :value="unit.id">{{ unit.name }} ({{ unit.code }})</option>
+              </select>
+            </label>
+            <label v-if="showDepartmentField">
+              <span>Departamento</span>
+              <select v-model.number="form.department_id" :disabled="!isAdmin" required>
+                <option :value="0" disabled>Selecione o departamento</option>
+                <option v-if="form.department_id && !hasDepartmentOption(form.department_id)" :value="form.department_id">Departamento #{{ form.department_id }}</option>
+                <option v-for="dep in departments" :key="dep.id" :value="dep.id">{{ dep.name }} ({{ dep.code }})</option>
+              </select>
+            </label>
+            <label>
+              <span>Data de Nascimento</span>
+              <input v-model="form.birth_date" type="date" :disabled="!isAdmin" />
+            </label>
+            <label>
+              <span>Sexo</span>
+              <select v-model="form.sex" :disabled="!isAdmin">
+                <option value="">Não informado</option>
+                <option value="M">Masculino</option>
+                <option value="F">Feminino</option>
               </select>
             </label>
             <label v-if="isAdmin">
@@ -152,7 +181,7 @@
 
 <script setup>
 import axios from 'axios'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import SideNav from '../components/SideNav.vue'
@@ -165,6 +194,8 @@ const authStore = useAuthStore()
 
 const user = ref({})
 const activities = ref([])
+const units = ref([])
+const departments = ref([])
 const activeTab = ref('info')
 const successMessage = ref('')
 const errorMessage = ref('')
@@ -174,6 +205,10 @@ const form = reactive({
   role: 'DIRETOR',
   is_active: true,
   password: '',
+  birth_date: '',
+  sex: '',
+  unit_id: 0,
+  department_id: 0,
 })
 const activityFilters = reactive({
   module: '',
@@ -183,6 +218,8 @@ const activityFilters = reactive({
 })
 
 const isAdmin = computed(() => authStore.user?.role === 'ADMIN')
+const showDepartmentField = computed(() => form.role === 'CHEFE')
+const showUnitField = computed(() => form.role === 'DIRETOR')
 const initials = computed(() => {
   const name = user.value.full_name || ''
   return name
@@ -192,6 +229,23 @@ const initials = computed(() => {
     .map((part) => part[0]?.toUpperCase() || '')
     .join('') || 'US'
 })
+
+watch(
+  () => form.role,
+  (role) => {
+    if (!isAdmin.value) return
+    if (role === 'CHEFE') {
+      form.unit_id = 0
+      return
+    }
+    if (role === 'DIRETOR') {
+      form.department_id = 0
+      return
+    }
+    form.unit_id = 0
+    form.department_id = 0
+  },
+)
 
 function parseError(error) {
   if (axios.isAxiosError(error)) return error.response?.data?.message || 'Erro na operação.'
@@ -243,6 +297,14 @@ function formatAction(action) {
   return action
 }
 
+function hasUnitOption(unitId) {
+  return units.value.some((item) => Number(item.id) === Number(unitId))
+}
+
+function hasDepartmentOption(departmentId) {
+  return departments.value.some((item) => Number(item.id) === Number(departmentId))
+}
+
 function goBack() {
   router.push({ name: 'users' })
 }
@@ -256,7 +318,22 @@ async function loadUser() {
     form.username = data.username || ''
     form.role = data.role || 'DIRETOR'
     form.is_active = Boolean(data.is_active)
+    form.birth_date = data.birth_date || ''
+    form.sex = data.sex || ''
+    form.unit_id = Number(data.unit_id || 0)
+    form.department_id = Number(data.department_id || 0)
     form.password = ''
+  } catch (error) {
+    errorMessage.value = parseError(error)
+  }
+}
+
+async function loadScopeOptions() {
+  if (!isAdmin.value) return
+  try {
+    const [unitsRes, depsRes] = await Promise.allSettled([api.get('/api/units'), api.get('/api/departments')])
+    if (unitsRes.status === 'fulfilled') units.value = unitsRes.value.data
+    if (depsRes.status === 'fulfilled') departments.value = depsRes.value.data
   } catch (error) {
     errorMessage.value = parseError(error)
   }
@@ -295,6 +372,26 @@ async function saveUser() {
       username: form.username,
       role: form.role,
       is_active: form.is_active,
+      birth_date: form.birth_date || null,
+      sex: form.sex || null,
+    }
+    if (showDepartmentField.value) {
+      if (!form.department_id) {
+        errorMessage.value = 'Selecione o departamento para o papel CHEFE.'
+        return
+      }
+      payload.department_id = form.department_id
+      payload.unit_id = null
+    } else if (showUnitField.value) {
+      if (!form.unit_id) {
+        errorMessage.value = 'Selecione a unidade orgânica para o papel DIRETOR.'
+        return
+      }
+      payload.unit_id = form.unit_id
+      payload.department_id = null
+    } else {
+      payload.unit_id = null
+      payload.department_id = null
     }
     if (form.password.trim()) payload.password = form.password.trim()
     await api.put(`/api/users/${route.params.id}`, payload)
@@ -322,6 +419,7 @@ async function deactivateUser() {
 
 onMounted(async () => {
   await loadUser()
+  await loadScopeOptions()
   await loadActivities()
 })
 </script>

@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
+from sqlalchemy import inspect
 from werkzeug.security import generate_password_hash
 
 from app.config import Config
@@ -65,6 +66,25 @@ def create_app() -> Flask:
 
     with app.app_context():
         db.create_all()
+        _ensure_runtime_schema()
         _seed_default_rector_user()
 
     return app
+
+
+def _ensure_runtime_schema():
+    inspector = inspect(db.engine)
+    tables = inspector.get_table_names()
+    if "users" in tables:
+        columns = {c["name"] for c in inspector.get_columns("users")}
+        statements = []
+        if "photo_url" not in columns:
+            statements.append("ALTER TABLE users ADD COLUMN photo_url TEXT NULL")
+        if "birth_date" not in columns:
+            statements.append("ALTER TABLE users ADD COLUMN birth_date DATE NULL")
+        if "sex" not in columns:
+            statements.append("ALTER TABLE users ADD COLUMN sex VARCHAR(20) NULL")
+        if statements:
+            with db.engine.begin() as conn:
+                for statement in statements:
+                    conn.exec_driver_sql(statement)

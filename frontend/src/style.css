@@ -488,6 +488,238 @@ footer a {
   gap: 10px;
 }
 
+.users-create-form .create-field input[type="file"] {
+  padding: 8px;
+  height: auto;
+}
+
+.users-create-photo-preview {
+  margin-top: 8px;
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  border: 1px solid #d9d3da;
+  overflow: hidden;
+  background: #f2eef2;
+}
+
+.users-create-photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.courses-v3-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.courses-v3-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 0.8rem;
+}
+
+.courses-v3-head h1 {
+  margin: 0;
+  font-size: 2.1rem;
+}
+
+.courses-v3-head p {
+  margin: 0.25rem 0 0;
+  color: #6b6670;
+}
+
+.courses-v3-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.courses-v3-search {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d5cfd8;
+  border-radius: 12px;
+  background: #f8f6f8;
+  overflow: hidden;
+}
+
+.courses-v3-search input {
+  width: 320px;
+  border: 0;
+  background: transparent;
+}
+
+.courses-v3-search button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-left: 1px solid #ddd6de;
+  background: transparent;
+}
+
+.courses-v3-card {
+  border: 1px solid #ddd6dc;
+  border-radius: 14px;
+  background: #f7f5f7;
+  overflow: hidden;
+}
+
+.courses-v3-card-title {
+  padding: 0.95rem 1.1rem;
+  border-bottom: 1px solid #ddd6dc;
+  font-weight: 700;
+  font-size: 1.65rem;
+}
+
+.courses-v3-filters {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem 1.1rem;
+}
+
+.courses-v3-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.courses-v3-table-wrap th,
+.courses-v3-table-wrap td {
+  text-align: left;
+  padding: 0.75rem 1.1rem;
+  border-top: 1px solid #e3dde4;
+}
+
+.courses-v3-table-wrap th {
+  cursor: pointer;
+}
+
+.courses-v3-actions-cell {
+  position: relative;
+}
+
+.courses-v3-actions {
+  display: inline-flex;
+  border: 1px solid #d9d3da;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.courses-v3-actions .btn {
+  min-width: 0;
+  height: 40px;
+  border: 0;
+}
+
+.courses-v3-menu-btn {
+  width: 42px;
+  height: 40px;
+  border: 0;
+  border-left: 1px solid #d9d3da;
+  background: #f5f3f6;
+}
+
+.courses-v3-menu {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  z-index: 3;
+  border: 1px solid #ddd5dd;
+  border-radius: 10px;
+  background: #fff;
+  min-width: 130px;
+  box-shadow: 0 10px 26px rgba(45, 40, 46, 0.12);
+}
+
+.courses-v3-menu button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0.65rem 0.7rem;
+  text-align: left;
+}
+
+.courses-v3-footer {
+  padding: 0.85rem 1.1rem;
+  border-top: 1px solid #e3dde4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.courses-v3-summary {
+  border: 1px solid #ddd6dc;
+  border-radius: 12px;
+  padding: 0.6rem 0.95rem;
+  background: #f9f7f8;
+}
+
+.courses-v3-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.courses-v3-pagination select {
+  width: 170px;
+}
+
+.courses-v3-pagination button,
+.courses-v3-pagination .current {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid #d9d2da;
+  display: grid;
+  place-items: center;
+  background: #f8f5f8;
+}
+
+.courses-v3-pagination .current {
+  background: linear-gradient(120deg, #b57d18, #d8a83a);
+  border-color: #b87f1a;
+  color: #fff;
+}
+
+.courses-v3-edit-card {
+  border: 1px solid #ddd6dc;
+  border-radius: 14px;
+  background: #f7f5f7;
+  padding: 0.9rem 1rem;
+}
+
+.courses-v3-edit-card h3 {
+  margin: 0 0 0.7rem;
+}
+
+.courses-v3-edit-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 0.6rem;
+}
+
+.courses-v3-edit-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.courses-v3-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 0.6rem 1.2rem;
+}
+
+.courses-filter-heading {
+  margin-top: 0.45rem;
+}
+
 .create-list-panel {
   margin-top: 12px;
   border: 1px solid #e0dae1;
@@ -2546,6 +2778,13 @@ footer a {
   display: grid;
   place-items: center;
   font-weight: 700;
+}
+
+.user-detail-avatar-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  object-fit: cover;
 }
 
 .user-detail-main {

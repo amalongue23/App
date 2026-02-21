@@ -12,6 +12,6 @@ class UserScope(db.Model):
     department_id = db.Column(db.Integer, db.ForeignKey("departments.id"), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    user = db.relationship("User")
+    user = db.relationship("User", back_populates="scope")
     unit = db.relationship("OrganizationalUnit")
     department = db.relationship("Department")

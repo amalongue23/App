@@ -11,5 +11,10 @@ class User(db.Model):
     username = db.Column(db.String(60), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False)
+    photo_url = db.Column(db.Text, nullable=True)
+    birth_date = db.Column(db.Date, nullable=True)
+    sex = db.Column(db.String(20), nullable=True)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    scope = db.relationship("UserScope", uselist=False, back_populates="user")

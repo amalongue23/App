@@ -3,6 +3,8 @@ from werkzeug.security import generate_password_hash
 from flask_smorest import abort
 
 from app.extensions import db
+from app.models.department import Department
+from app.models.user_scope import UserScope
 from app.repositories.user_repository import UserRepository
 from app.services.user_activity_service import UserActivityService
 
@@ -30,12 +32,23 @@ class UserService:
                 abort(409, message="Username already exists")
 
         payload = dict(data)
+        if "role" in payload and payload["role"] == "DIRECTOR":
+            payload["role"] = "DIRETOR"
+        role_for_scope = payload.get("role", user.role)
+        requested_unit_id = payload.pop("unit_id", None) if "unit_id" in payload else None
+        requested_department_id = payload.pop("department_id", None) if "department_id" in payload else None
         if "password" in payload:
             raw_password = payload.pop("password")
             if raw_password:
                 payload["password_hash"] = generate_password_hash(raw_password)
 
         updated = self.repository.update(user, **payload)
+        self._upsert_scope(
+            user=updated,
+            role=role_for_scope,
+            unit_id=requested_unit_id,
+            department_id=requested_department_id,
+        )
         self.activity_service.log(
             user_id=updated.id,
             actor_id=actor_id,
@@ -50,6 +63,38 @@ class UserService:
                 description=f"Atualizou o usuário '{updated.username}'.",
             )
         return updated
+
+    def _upsert_scope(self, user, role: str, unit_id: int | None, department_id: int | None):
+        scope = UserScope.query.filter_by(user_id=user.id).first()
+        if role == "CHEFE":
+            if department_id is None and scope and scope.department_id:
+                department_id = scope.department_id
+            if not department_id:
+                abort(400, message="department_id is required for CHEFE role")
+            department = Department.query.get(department_id)
+            if not department:
+                abort(404, message="Department not found")
+            unit_id = department.unit_id
+        elif role == "DIRETOR":
+            if unit_id is None and scope and scope.unit_id:
+                unit_id = scope.unit_id
+            if not unit_id:
+                abort(400, message="unit_id is required for DIRETOR role")
+            department_id = None
+        else:
+            unit_id = None
+            department_id = None
+
+        if role in {"CHEFE", "DIRETOR"}:
+            if scope:
+                scope.unit_id = unit_id
+                scope.department_id = department_id
+            else:
+                db.session.add(UserScope(user_id=user.id, unit_id=unit_id, department_id=department_id))
+            db.session.commit()
+        elif scope:
+            db.session.delete(scope)
+            db.session.commit()
 
     def deactivate(self, user_id: int, actor_id: int | None):
         user = self.get_by_id(user_id)

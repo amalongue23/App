@@ -4,6 +4,7 @@ import { resolveDashboardByRole } from '../constants/roles'
 import AcademicYearsView from '../views/AcademicYearsView.vue'
 import ChiefDashboardView from '../views/ChiefDashboardView.vue'
 import CoursesCreateView from '../views/CoursesCreateView.vue'
+import CoursesEditView from '../views/CoursesEditView.vue'
 import CoursesManageView from '../views/CoursesManageView.vue'
 import CrudHomeView from '../views/CrudHomeView.vue'
 import DatasetToolsView from '../views/DatasetToolsView.vue'
@@ -20,6 +21,7 @@ import StudentStatusView from '../views/StudentStatusView.vue'
 import UnitsCreateView from '../views/UnitsCreateView.vue'
 import UnitsManageView from '../views/UnitsManageView.vue'
 import UsersView from '../views/UsersView.vue'
+import UsersCreateView from '../views/UsersCreateView.vue'
 import UserDetailView from '../views/UserDetailView.vue'
 import { useAuthStore } from '../stores/auth'
 
@@ -46,6 +48,7 @@ const router = createRouter({
     { path: '/statistics', name: 'statistics', component: StatisticsView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'CHEFE', 'ADMIN'] } },
     { path: '/academic-years', name: 'academic-years', component: AcademicYearsView, meta: { requiresAuth: true, roles: ['REITOR', 'ADMIN'] } },
     { path: '/users', name: 'users', component: UsersView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'ADMIN'] } },
+    { path: '/users/create', name: 'user-create', component: UsersCreateView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'ADMIN'] } },
     { path: '/users/:id', name: 'user-detail', component: UserDetailView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'ADMIN'] } },
 
     { path: '/units/create', name: 'units-create', component: UnitsCreateView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'ADMIN'] } },
@@ -55,6 +58,7 @@ const router = createRouter({
     { path: '/departments/manage', name: 'departments-manage', component: DepartmentsManageView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
 
     { path: '/courses/create', name: 'courses-create', component: CoursesCreateView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'CHEFE', 'ADMIN'] } },
+    { path: '/courses/:id/edit', name: 'courses-edit', component: CoursesEditView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'CHEFE', 'ADMIN'] } },
     { path: '/courses/manage', name: 'courses-manage', component: CoursesManageView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'CHEFE', 'ADMIN'] } },
 
     { path: '/students/create', name: 'students-create', component: StudentsCreateView, meta: { requiresAuth: true, roles: ['CHEFE', 'ADMIN'] } },

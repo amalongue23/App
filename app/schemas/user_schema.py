@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, validate
 
 
 class UserCreateSchema(Schema):
@@ -6,6 +6,11 @@ class UserCreateSchema(Schema):
     username = fields.Str(required=True)
     password = fields.Str(required=True, load_only=True)
     role = fields.Str(required=True)
+    unit_id = fields.Int(load_default=None, allow_none=True)
+    department_id = fields.Int(load_default=None, allow_none=True)
+    photo_url = fields.Str(load_default=None, allow_none=True)
+    birth_date = fields.Date(load_default=None, allow_none=True)
+    sex = fields.Str(load_default=None, allow_none=True, validate=validate.OneOf(["M", "F"]))
 
 
 class UserUpdateSchema(Schema):
@@ -14,6 +19,11 @@ class UserUpdateSchema(Schema):
     password = fields.Str(load_only=True)
     role = fields.Str()
     is_active = fields.Bool()
+    unit_id = fields.Int(load_default=None, allow_none=True)
+    department_id = fields.Int(load_default=None, allow_none=True)
+    photo_url = fields.Str(load_default=None, allow_none=True)
+    birth_date = fields.Date(load_default=None, allow_none=True)
+    sex = fields.Str(load_default=None, allow_none=True, validate=validate.OneOf(["M", "F"]))
 
 
 class UserResponseSchema(Schema):
@@ -21,8 +31,21 @@ class UserResponseSchema(Schema):
     full_name = fields.Str()
     username = fields.Str()
     role = fields.Str()
+    photo_url = fields.Str(allow_none=True)
+    birth_date = fields.Date(allow_none=True)
+    sex = fields.Str(allow_none=True)
+    unit_id = fields.Method("get_unit_id")
+    department_id = fields.Method("get_department_id")
     is_active = fields.Bool()
     created_at = fields.DateTime()
+
+    def get_unit_id(self, obj):
+        scope = getattr(obj, "scope", None)
+        return scope.unit_id if scope else None
+
+    def get_department_id(self, obj):
+        scope = getattr(obj, "scope", None)
+        return scope.department_id if scope else None
 
 
 class UserActivityResponseSchema(Schema):

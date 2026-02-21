@@ -9,34 +9,13 @@
           <p>Listagem, roles e edição de usuários</p>
         </div>
         <div class="users-v2-head-actions">
-          <button class="btn btn-primary" type="button" @click="showCreate = !showCreate">+ Novo Usuário</button>
+          <button class="btn btn-primary" type="button" @click="goToCreateUser">+ Novo Usuário</button>
           <input v-model="searchTerm" placeholder="Pesquisar..." />
         </div>
       </header>
 
       <p class="success" v-if="successMessage">{{ successMessage }}</p>
       <p class="error" v-if="errorMessage">{{ errorMessage }}</p>
-
-      <section v-if="showCreate" class="users-v2-create-card">
-        <h3>Novo Usuário</h3>
-        <form class="users-v2-create-form" @submit.prevent="createUser">
-          <input v-model="form.full_name" placeholder="Nome completo" required />
-          <input v-model="form.username" placeholder="Username" required />
-          <input v-model="form.password" type="password" placeholder="Senha" required />
-          <select v-model="form.role" required>
-            <option value="" disabled>Selecione o papel</option>
-            <option value="ADMIN">ADMIN</option>
-            <option value="REITOR">REITOR</option>
-            <option value="DIRETOR">DIRETOR</option>
-            <option value="CHEFE">CHEFE</option>
-            <option value="COORDENADOR">COORDENADOR</option>
-            <option value="SECRETARIA">SECRETARIA</option>
-            <option value="PROFESSOR">PROFESSOR</option>
-            <option value="ASSISTENTE">ASSISTENTE</option>
-          </select>
-          <button class="btn btn-primary" type="submit">Cadastrar</button>
-        </form>
-      </section>
 
       <section class="users-v2-table-card">
         <div class="users-v2-table-wrap">
@@ -92,7 +71,7 @@
 
 <script setup>
 import axios from 'axios'
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import SideNav from '../components/SideNav.vue'
@@ -103,7 +82,6 @@ const users = ref([])
 const errorMessage = ref('')
 const successMessage = ref('')
 const searchTerm = ref('')
-const showCreate = ref(false)
 const currentPage = ref(1)
 const pageSize = 10
 const sortBy = ref('id')
@@ -111,7 +89,6 @@ const sortDir = ref('asc')
 const openActionMenuId = ref(0)
 const router = useRouter()
 const authStore = useAuthStore()
-const form = reactive({ full_name: '', username: '', password: '', role: '' })
 const actionLabel = computed(() => (authStore.user?.role === 'ADMIN' ? 'Ver / Editar' : 'Ver'))
 
 const filteredUsers = computed(() => {
@@ -161,13 +138,6 @@ function toggleSort(column) {
   }
 }
 
-function resetForm() {
-  form.full_name = ''
-  form.username = ''
-  form.password = ''
-  form.role = ''
-}
-
 function resetMessages() {
   errorMessage.value = ''
   successMessage.value = ''
@@ -201,6 +171,10 @@ function openUserDetail(userId) {
   openActionMenuId.value = 0
 }
 
+function goToCreateUser() {
+  router.push({ name: 'user-create' })
+}
+
 function toggleActionMenu(id) {
   openActionMenuId.value = openActionMenuId.value === id ? 0 : id
 }
@@ -210,19 +184,6 @@ async function listUsers() {
     resetMessages()
     const r = await api.get('/api/users')
     users.value = r.data
-  } catch (error) {
-    errorMessage.value = parseError(error)
-  }
-}
-
-async function createUser() {
-  try {
-    resetMessages()
-    await api.post('/api/users', form)
-    resetForm()
-    showCreate.value = false
-    await listUsers()
-    successMessage.value = 'Usuário criado com sucesso.'
   } catch (error) {
     errorMessage.value = parseError(error)
   }

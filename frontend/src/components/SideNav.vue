@@ -93,9 +93,9 @@ const visibleItems = computed(() => {
     return items
   }
   if (role === 'CHEFE') {
-    return items.filter((item) => item.key !== 'units' && item.key !== 'departments' && item.key !== 'academic-years')
+    return items.filter((item) => item.key !== 'units' && item.key !== 'departments' && item.key !== 'academic-years' && item.key !== 'users')
   }
-  return items.filter((item) => item.key !== 'departments' && item.key !== 'academic-years')
+  return items.filter((item) => item.key !== 'departments' && item.key !== 'academic-years' && item.key !== 'users')
 })
 
 const initials = computed(() => {
@@ -129,7 +129,7 @@ function isActive(key) {
   if (key === 'departments') return name.startsWith('departments-')
   if (key === 'courses') return name.startsWith('courses-')
   if (key === 'students') return name.startsWith('students-') || name === 'student-status'
-  if (key === 'users') return name === 'users'
+  if (key === 'users') return name === 'users' || name === 'user-detail' || name === 'user-create'
   if (key === 'reports') return name === 'reports'
   return false
 }
