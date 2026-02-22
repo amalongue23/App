@@ -10,6 +10,7 @@ class StudentControl(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey("students.id"), nullable=False)
     academic_year_id = db.Column(db.Integer, db.ForeignKey("academic_years.id"), nullable=False)
     status = db.Column(db.String(30), nullable=False, default="active")
+    academic_level = db.Column(db.String(40), nullable=True)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     student = db.relationship("Student", back_populates="controls")

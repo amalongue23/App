@@ -5,12 +5,7 @@
     <section class="content-area chief-content">
       <header class="chief-topbar">
         <div class="chief-tenant">Restauro Admin</div>
-        <div class="chief-icons">
-          <span class="top-icon"></span>
-          <span class="top-icon"></span>
-          <span class="top-icon"></span>
-          <span class="chief-avatar">{{ initials }}</span>
-        </div>
+        <DashboardUserMenu />
       </header>
 
       <h1 class="chief-title">Bem-vindo, <span>Chefe!</span></h1>
@@ -139,11 +134,9 @@
 import axios from 'axios'
 import { computed, onMounted, reactive, ref } from 'vue'
 
+import DashboardUserMenu from '../components/DashboardUserMenu.vue'
 import SideNav from '../components/SideNav.vue'
 import api from '../services/api'
-import { useAuthStore } from '../stores/auth'
-
-const authStore = useAuthStore()
 
 const filters = reactive({ anos: [] })
 const selectedAnoId = ref('')
@@ -206,11 +199,6 @@ const failedPointMarkers = computed(() =>
     chartMax.value,
   ),
 )
-
-const initials = computed(() => {
-  const name = authStore.user?.username || 'UL'
-  return name.slice(0, 2).toUpperCase()
-})
 
 const trendPoints = computed(() =>
   buildSeriesPoints(

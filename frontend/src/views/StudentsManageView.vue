@@ -11,6 +11,7 @@
         <div class="students-v2-head-actions">
           <router-link v-if="canCreate" class="btn btn-primary" to="/students/create">+ Novo Estudante</router-link>
           <button class="btn btn-ghost" type="button" @click="exportCsv">Exportar</button>
+          <DashboardUserMenu compact />
         </div>
       </header>
 
@@ -34,6 +35,10 @@
           <select v-model="draft.course_id">
             <option value="">Todos os cursos</option>
             <option v-for="course in filteredCoursesByDepartment" :key="course.id" :value="String(course.id)">{{ course.name }}</option>
+          </select>
+          <select v-model="draft.academic_level">
+            <option value="">Todos os anos de frequência</option>
+            <option v-for="item in academicLevels" :key="item.value" :value="item.value">{{ item.label }}</option>
           </select>
           <select v-model.number="draft.year_id">
             <option :value="0" disabled>Selecione o ano</option>
@@ -61,6 +66,7 @@
                   <th @click="toggleSort('registration_number')">Matrícula</th>
                   <th @click="toggleSort('email')">Email</th>
                   <th>Curso</th>
+                  <th @click="toggleSort('academic_level')">Ano de Frequência</th>
                   <th>Status</th>
                   <th>Ações</th>
                 </tr>
@@ -72,6 +78,7 @@
                   <td>{{ item.registration_number }}</td>
                   <td>{{ item.email }}</td>
                   <td>{{ item.course_name || '-' }}</td>
+                  <td>{{ academicLevelLabel(item.academic_level) }}</td>
                   <td>
                     <span class="status-tag" :class="statusClass(item.status)">{{ statusLabel(item.status) }}</span>
                   </td>
@@ -101,7 +108,9 @@ import axios from 'axios'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+import DashboardUserMenu from '../components/DashboardUserMenu.vue'
 import SideNav from '../components/SideNav.vue'
+import { ACADEMIC_LEVEL_OPTIONS, academicLevelLabel } from '../constants/academicLevels'
 import api from '../services/api'
 import { useAuthStore } from '../stores/auth'
 
@@ -119,9 +128,10 @@ const currentPage = ref(1)
 const sortBy = ref('id')
 const sortDir = ref('asc')
 const statusMap = reactive({})
+const academicLevels = ACADEMIC_LEVEL_OPTIONS
 
-const draft = reactive({ department_id: '', course_id: '', year_id: 0, search: '' })
-const applied = reactive({ department_id: '', course_id: '', year_id: 0, search: '' })
+const draft = reactive({ department_id: '', course_id: '', academic_level: '', year_id: 0, search: '' })
+const applied = reactive({ department_id: '', course_id: '', academic_level: '', year_id: 0, search: '' })
 
 const isAdmin = computed(() => authStore.user?.role === 'ADMIN')
 const isChefe = computed(() => authStore.user?.role === 'CHEFE')
@@ -140,16 +150,21 @@ const filteredCoursesByDepartment = computed(() => {
 })
 
 const mergedItems = computed(() =>
-  students.value.map((s) => ({ ...s, status: statusMap[s.id] || 'nao_definido' })),
+  students.value.map((s) => ({
+    ...s,
+    status: (statusMap[s.id] || {}).status || 'nao_definido',
+    academic_level: (statusMap[s.id] || {}).academic_level || s.academic_level,
+  })),
 )
 
 const filteredItems = computed(() => {
   const search = applied.search.trim().toLowerCase()
   return mergedItems.value.filter((item) => {
     const byCourse = applied.course_id ? String(item.course_id || '') === String(applied.course_id) : true
-    const haystack = `${item.full_name} ${item.registration_number} ${item.email} ${item.course_name || ''}`.toLowerCase()
+    const byAcademicLevel = applied.academic_level ? String(item.academic_level || '') === String(applied.academic_level) : true
+    const haystack = `${item.full_name} ${item.registration_number} ${item.email} ${item.course_name || ''} ${academicLevelLabel(item.academic_level)}`.toLowerCase()
     const bySearch = search ? haystack.includes(search) : true
-    return byCourse && bySearch
+    return byCourse && byAcademicLevel && bySearch
   })
 })
 
@@ -233,8 +248,8 @@ function goToStatus(studentId) {
 
 function exportCsv() {
   const rows = filteredItems.value
-  const header = ['id', 'nome', 'matricula', 'email', 'curso', 'status']
-  const lines = rows.map((r) => [r.id, r.full_name, r.registration_number, r.email, r.course_name || '', statusLabel(r.status)].join(','))
+  const header = ['id', 'nome', 'matricula', 'email', 'curso', 'ano_frequencia', 'status']
+  const lines = rows.map((r) => [r.id, r.full_name, r.registration_number, r.email, r.course_name || '', academicLevelLabel(r.academic_level), statusLabel(r.status)].join(','))
   const csv = [header.join(','), ...lines].join('\n')
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
@@ -253,6 +268,7 @@ function clearSearch() {
 function clearFilters() {
   draft.department_id = isChefe.value && departments.value.length ? String(departments.value[0].id) : ''
   draft.course_id = ''
+  draft.academic_level = ''
   draft.search = ''
   if (years.value.length) draft.year_id = years.value[0].ano_academico_id
   applyFilters()
@@ -302,13 +318,14 @@ async function loadStudentsAndStatus() {
     ),
   )
   for (const response of statusResponses) {
-    for (const row of response.data || []) statusMap[row.student_id] = row.status
+    for (const row of response.data || []) statusMap[row.student_id] = { status: row.status, academic_level: row.academic_level }
   }
 }
 
 async function applyFilters() {
   applied.department_id = draft.department_id
   applied.course_id = draft.course_id
+  applied.academic_level = draft.academic_level
   applied.year_id = Number(draft.year_id || 0)
   applied.search = draft.search
   currentPage.value = 1

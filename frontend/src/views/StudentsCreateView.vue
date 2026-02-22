@@ -43,6 +43,13 @@
 
       <div class="form-grid-2">
         <div class="create-field">
+          <label class="create-label">* Ano de Frequência</label>
+          <select v-model="form.academic_level" required>
+            <option value="" disabled>Selecione o ano de frequência</option>
+            <option v-for="item in academicLevels" :key="item.value" :value="item.value">{{ item.label }}</option>
+          </select>
+        </div>
+        <div class="create-field">
           <label class="create-label">* Data de Nascimento</label>
           <input v-model="form.birth_date" type="date" required />
         </div>
@@ -66,11 +73,13 @@
 <script setup>
 import axios from 'axios'; import { computed, onMounted, reactive, ref } from 'vue'
 import CreateEntityLayout from '../components/CreateEntityLayout.vue'; import api from '../services/api'
-const departments=ref([]), courses=ref([]), successMessage=ref(''), errorMessage=ref(''); const form=reactive({ full_name:'', registration_number:'', email:'', department_id:0, course_id:0, birth_date:'', sex:'' })
+import { ACADEMIC_LEVEL_OPTIONS } from '../constants/academicLevels'
+const academicLevels = ACADEMIC_LEVEL_OPTIONS
+const departments=ref([]), courses=ref([]), successMessage=ref(''), errorMessage=ref(''); const form=reactive({ full_name:'', registration_number:'', email:'', department_id:0, course_id:0, academic_level:'', birth_date:'', sex:'' })
 const filteredCourses = computed(() => courses.value.filter((c) => c.department_id === form.department_id))
 const err=(e)=>axios.isAxiosError(e)?(e.response?.data?.message||'Erro na operação.'):'Erro na operação.'
 async function loadDepartments(){ const r=await api.get('/api/dashboard/filters'); departments.value=r.data.departments||[]; courses.value=r.data.courses||[]; if(!form.department_id&&departments.value.length){form.department_id=departments.value[0].id; onDepartmentChange()} }
 function onDepartmentChange(){ if(!filteredCourses.value.some((c)=>c.id===form.course_id)){ form.course_id = filteredCourses.value.length ? filteredCourses.value[0].id : 0 } }
-async function createStudent(){ try{successMessage.value=''; errorMessage.value=''; await api.post('/api/students', form); form.full_name=''; form.registration_number=''; form.email=''; form.birth_date=''; form.sex=''; form.department_id=departments.value.length?departments.value[0].id:0; onDepartmentChange(); successMessage.value='Estudante cadastrado com sucesso.' }catch(e){errorMessage.value=err(e)} }
-onMounted(async()=>{try{await loadDepartments()}catch(e){errorMessage.value=err(e)}})
+async function createStudent(){ try{successMessage.value=''; errorMessage.value=''; await api.post('/api/students', form); form.full_name=''; form.registration_number=''; form.email=''; form.academic_level=academicLevels[0]?.value||''; form.birth_date=''; form.sex=''; form.department_id=departments.value.length?departments.value[0].id:0; onDepartmentChange(); successMessage.value='Estudante cadastrado com sucesso.' }catch(e){errorMessage.value=err(e)} }
+onMounted(async()=>{try{form.academic_level=academicLevels[0]?.value||''; await loadDepartments()}catch(e){errorMessage.value=err(e)}})
 </script>

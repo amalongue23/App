@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import { resolveDashboardByRole } from '../constants/roles'
 import AcademicYearsView from '../views/AcademicYearsView.vue'
+import AcademicYearCreateView from '../views/AcademicYearCreateView.vue'
+import AdminDashboardView from '../views/AdminDashboardView.vue'
 import ChiefDashboardView from '../views/ChiefDashboardView.vue'
 import CoursesCreateView from '../views/CoursesCreateView.vue'
 import CoursesEditView from '../views/CoursesEditView.vue'
@@ -40,13 +42,15 @@ const router = createRouter({
       },
       meta: { requiresAuth: true },
     },
-    { path: '/dashboard/reitor', name: 'dashboard-reitor', component: DashboardView, meta: { requiresAuth: true, roles: ['REITOR', 'ADMIN'] } },
+    { path: '/dashboard/reitor', name: 'dashboard-reitor', component: DashboardView, meta: { requiresAuth: true, roles: ['REITOR'] } },
+    { path: '/dashboard/admin', name: 'dashboard-admin', component: AdminDashboardView, meta: { requiresAuth: true, roles: ['ADMIN'] } },
     { path: '/dashboard/chefe', name: 'dashboard-chefe', component: ChiefDashboardView, meta: { requiresAuth: true, roles: ['CHEFE'] } },
     { path: '/dashboard/diretor', name: 'dashboard-diretor', component: DirectorDashboardView, meta: { requiresAuth: true, roles: ['DIRETOR'] } },
 
     { path: '/operations', name: 'operations', component: CrudHomeView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'CHEFE', 'ADMIN'] } },
     { path: '/statistics', name: 'statistics', component: StatisticsView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'CHEFE', 'ADMIN'] } },
     { path: '/academic-years', name: 'academic-years', component: AcademicYearsView, meta: { requiresAuth: true, roles: ['REITOR', 'ADMIN'] } },
+    { path: '/academic-years/new', name: 'academic-years-new', component: AcademicYearCreateView, meta: { requiresAuth: true, roles: ['REITOR', 'ADMIN'] } },
     { path: '/users', name: 'users', component: UsersView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'ADMIN'] } },
     { path: '/users/create', name: 'user-create', component: UsersCreateView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'ADMIN'] } },
     { path: '/users/:id', name: 'user-detail', component: UserDetailView, meta: { requiresAuth: true, roles: ['REITOR', 'DIRETOR', 'ADMIN'] } },

@@ -4,11 +4,7 @@
 
     <section class="content-area create-content">
       <header class="create-topbar">
-        <div class="create-top-icons">
-          <span class="top-icon"></span>
-          <span class="top-icon"></span>
-          <span class="top-icon"></span>
-        </div>
+        <DashboardUserMenu />
       </header>
 
       <section class="create-card">
@@ -22,6 +18,7 @@
 
 <script setup>
 import SideNav from './SideNav.vue'
+import DashboardUserMenu from './DashboardUserMenu.vue'
 
 defineProps({
   title: { type: String, required: true },

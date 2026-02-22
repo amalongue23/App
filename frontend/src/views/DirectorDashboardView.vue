@@ -1,10 +1,11 @@
 <template>
-  <main class="admin-layout">
+  <main class="admin-layout director-layout">
     <SideNav />
 
-    <section class="content-area">
+    <section class="content-area director-content">
       <header class="topbar">
-        <div>Bem-vindo, <span>Diretor!</span></div>
+        <div class="director-topbar-title">Bem-vindo, <span class="welcome-highlight">Diretor!</span></div>
+        <DashboardUserMenu />
       </header>
 
       <section class="period-filters">
@@ -93,14 +94,10 @@
 <script setup>
 import axios from 'axios'
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
 
+import DashboardUserMenu from '../components/DashboardUserMenu.vue'
 import SideNav from '../components/SideNav.vue'
 import api from '../services/api'
-import { useAuthStore } from '../stores/auth'
-
-const router = useRouter()
-const authStore = useAuthStore()
 
 const filters = reactive({ anos: [] })
 const selectedAnoId = ref('')
@@ -258,11 +255,6 @@ async function reloadDashboard() {
       errorMessage.value = 'Falha ao carregar dados do dashboard.'
     }
   }
-}
-
-function logout() {
-  authStore.logout()
-  router.push({ name: 'login' })
 }
 
 onMounted(async () => {

@@ -10,4 +10,12 @@ class AcademicYearRepository(BaseRepository):
         return AcademicYear.query.filter_by(is_open=True).all()
 
     def list_desc(self):
-        return AcademicYear.query.order_by(AcademicYear.opened_at.desc()).all()
+        years = AcademicYear.query.all()
+
+        def start_year(item: AcademicYear):
+            try:
+                return int((item.year_label or "").split("-")[0])
+            except (ValueError, TypeError, AttributeError):
+                return 0
+
+        return sorted(years, key=start_year, reverse=True)

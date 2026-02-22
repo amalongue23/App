@@ -2,6 +2,10 @@
   <main class="admin-layout">
     <SideNav />
     <section class="content-area">
+      <header class="topbar">
+        <div>Ferramentas de Dataset</div>
+        <DashboardUserMenu />
+      </header>
       <section class="ops-card">
       <OperationsNav title="Ferramentas de Dataset" subtitle="POST /api/datasets/unify e POST /api/datasets/validate" />
 
@@ -33,6 +37,7 @@
 import axios from 'axios'
 import { ref } from 'vue'
 
+import DashboardUserMenu from '../components/DashboardUserMenu.vue'
 import OperationsNav from '../components/OperationsNav.vue'
 import SideNav from '../components/SideNav.vue'
 import api from '../services/api'

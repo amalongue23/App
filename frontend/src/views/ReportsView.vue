@@ -2,6 +2,10 @@
   <main class="admin-layout">
     <SideNav />
     <section class="content-area">
+      <header class="topbar">
+        <div>Relatórios</div>
+        <DashboardUserMenu />
+      </header>
       <section class="ops-card">
       <OperationsNav title="Relatórios" subtitle="POST /api/reports/generate" />
 
@@ -22,6 +26,7 @@
 import axios from 'axios'
 import { ref } from 'vue'
 
+import DashboardUserMenu from '../components/DashboardUserMenu.vue'
 import OperationsNav from '../components/OperationsNav.vue'
 import SideNav from '../components/SideNav.vue'
 import api from '../services/api'

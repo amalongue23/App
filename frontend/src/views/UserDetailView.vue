@@ -8,13 +8,7 @@
           <button type="button">🔔</button>
           <button type="button">⚙</button>
         </div>
-        <div class="user-detail-toolbar-profile">
-          <div class="mini-avatar">{{ initials }}</div>
-          <div>
-            <strong>{{ authStore.user?.username || 'Utilizador' }}</strong>
-            <small>{{ authStore.user?.role || '-' }}</small>
-          </div>
-        </div>
+        <DashboardUserMenu compact />
       </header>
 
       <header class="user-detail-head">
@@ -184,6 +178,7 @@ import axios from 'axios'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import DashboardUserMenu from '../components/DashboardUserMenu.vue'
 import SideNav from '../components/SideNav.vue'
 import api from '../services/api'
 import { useAuthStore } from '../stores/auth'

@@ -14,6 +14,7 @@ class Student(db.Model):
     course_id = db.Column(db.Integer, db.ForeignKey("courses.id"), nullable=True)
     birth_date = db.Column(db.Date, nullable=True)
     sex = db.Column(db.String(20), nullable=True)
+    academic_level = db.Column(db.String(40), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     department = db.relationship("Department", back_populates="students")

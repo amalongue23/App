@@ -4,6 +4,7 @@ from flask_smorest import Blueprint
 
 from app.auth.decorators import roles_required
 from app.schemas.dashboard_schema import (
+    AdminDashboardResponseSchema,
     ChiefDashboardQuerySchema,
     ChiefDashboardResponseSchema,
     DirectorDashboardResponseSchema,
@@ -19,7 +20,7 @@ service = DashboardService()
 
 @blp.route("/filters")
 class DashboardFiltersResource(MethodView):
-    @roles_required("REITOR", "DIRETOR", "CHEFE")
+    @roles_required("REITOR", "DIRETOR", "CHEFE", "ADMIN")
     @blp.response(200, DashboardFiltersResponseSchema)
     def get(self):
         user_id = int(get_jwt_identity())
@@ -62,7 +63,7 @@ class DirectorDashboardResource(MethodView):
 
 @blp.route("/reitor")
 class RectorDashboardResource(MethodView):
-    @roles_required("REITOR")
+    @roles_required("REITOR", "ADMIN")
     @blp.arguments(ChiefDashboardQuerySchema, location="query")
     @blp.response(200, RectorDashboardResponseSchema)
     def get(self, query):
@@ -75,3 +76,12 @@ class RectorDashboardResource(MethodView):
             department_id=query.get("department_id"),
             course_id=query.get("course_id"),
         )
+
+
+@blp.route("/admin")
+class AdminDashboardResource(MethodView):
+    @roles_required("ADMIN")
+    @blp.response(200, AdminDashboardResponseSchema)
+    def get(self):
+        user_id = int(get_jwt_identity())
+        return service.get_admin_dashboard(user_id=user_id)

@@ -4,12 +4,7 @@
 
     <section class="content-area oc-content">
       <header class="oc-topbar">
-        <div class="oc-top-icons">
-          <span class="oc-icon"></span>
-          <span class="oc-icon"></span>
-          <span class="oc-icon"></span>
-          <span class="oc-avatar">{{ initials }}</span>
-        </div>
+        <DashboardUserMenu />
       </header>
 
       <h1 class="oc-title">Centro de Operações</h1>
@@ -109,6 +104,7 @@ import axios from 'axios'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import DashboardUserMenu from '../components/DashboardUserMenu.vue'
 import SideNav from '../components/SideNav.vue'
 import api from '../services/api'
 import { useAuthStore } from '../stores/auth'
@@ -125,11 +121,6 @@ const counts = reactive({
   users: '-',
 })
 const errorMessage = ref('')
-
-const initials = computed(() => {
-  const name = authStore.user?.username || 'UL'
-  return name.slice(0, 2).toUpperCase()
-})
 
 const roleLabel = computed(() => {
   const role = authStore.user?.role

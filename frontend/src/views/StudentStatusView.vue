@@ -5,12 +5,7 @@
     <section class="content-area student-content">
       <header class="student-topbar">
         <div class="student-breadcrumb">Gestão de Estudantes <span>›</span> Alterar Status do Estudante</div>
-        <div class="student-icons">
-          <span class="top-icon"></span>
-          <span class="top-icon"></span>
-          <span class="top-icon"></span>
-          <span class="student-avatar">{{ initials }}</span>
-        </div>
+        <DashboardUserMenu />
       </header>
 
       <h1 class="student-title">Gestão de Estudantes <span>›</span> Alterar Status do Estudante</h1>
@@ -24,6 +19,8 @@
               ID: {{ student?.registration_number || student?.id || '-' }}
               <span>•</span>
               Curso: {{ courseName || 'Não informado' }}
+              <span>•</span>
+              Ano de Frequência: {{ academicLevelLabel(student?.academic_level) }}
               <span>•</span>
               Departamento: {{ departmentName || '-' }}
             </p>
@@ -63,6 +60,12 @@
                 </option>
               </select>
             </div>
+            <div class="status-field">
+              <label>Ano de Frequência</label>
+              <select v-model="selectedAcademicLevel" :disabled="isReadOnly">
+                <option v-for="item in academicLevels" :key="item.value" :value="item.value">{{ item.label }}</option>
+              </select>
+            </div>
           </div>
 
           <div class="status-actions">
@@ -93,7 +96,9 @@ import axios from 'axios'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+import DashboardUserMenu from '../components/DashboardUserMenu.vue'
 import SideNav from '../components/SideNav.vue'
+import { ACADEMIC_LEVEL_OPTIONS, academicLevelLabel } from '../constants/academicLevels'
 import api from '../services/api'
 import { useAuthStore } from '../stores/auth'
 
@@ -109,14 +114,10 @@ const years = ref([])
 const selectedYearId = ref(0)
 const selectedStatus = ref('')
 const currentStatus = ref('nao_definido')
+const selectedAcademicLevel = ref('LICENCIATURA_1')
 const statusHistory = ref([])
 const errorMessage = ref('')
 const successMessage = ref('')
-
-const initials = computed(() => {
-  const name = authStore.user?.username || 'UL'
-  return name.slice(0, 2).toUpperCase()
-})
 
 const isReadOnly = computed(() => authStore.user?.role === 'DIRETOR' || authStore.user?.role === 'REITOR')
 
@@ -132,6 +133,7 @@ const courseName = computed(() => {
 })
 
 const canSave = computed(() => selectedYearId.value > 0 && selectedStatus.value)
+const academicLevels = ACADEMIC_LEVEL_OPTIONS
 
 function statusLabel(value) {
   if (!value || value === 'nao_definido') return 'Não definido'
@@ -168,6 +170,7 @@ async function loadFilters() {
 async function loadStudent() {
   const response = await api.get(`/api/students/${studentId}`)
   student.value = response.data
+  selectedAcademicLevel.value = response.data?.academic_level || academicLevels[0]?.value || 'LICENCIATURA_1'
 }
 
 async function loadCurrentStatus() {
@@ -176,6 +179,7 @@ async function loadCurrentStatus() {
     params: { academic_year_id: selectedYearId.value },
   })
   currentStatus.value = response.data?.status || 'nao_definido'
+  selectedAcademicLevel.value = response.data?.academic_level || student.value?.academic_level || academicLevels[0]?.value || 'LICENCIATURA_1'
   selectedStatus.value = currentStatus.value === 'nao_definido' ? '' : currentStatus.value
 }
 
@@ -226,9 +230,11 @@ async function saveStatus() {
     await api.put(`/api/students/${studentId}/status`, {
       academic_year_id: selectedYearId.value,
       status: selectedStatus.value,
+      academic_level: selectedAcademicLevel.value,
     })
     successMessage.value = 'Status atualizado com sucesso.'
     await loadCurrentStatus()
+    await loadStudent()
     await loadHistory()
   } catch (error) {
     errorMessage.value = parseError(error)

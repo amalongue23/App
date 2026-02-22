@@ -26,6 +26,7 @@ class ChiefDashboardResponseSchema(Schema):
     kpis = fields.Dict(required=True)
     performance = fields.List(fields.Dict(), required=True)
     trends = fields.List(fields.Dict(), required=True)
+    statistics = fields.Dict(required=True)
     courses = fields.List(fields.Dict(), required=True)
     activities = fields.List(fields.Dict(), required=True)
     notices = fields.List(fields.Dict(), required=True)
@@ -49,3 +50,11 @@ class RectorDashboardResponseSchema(Schema):
     units = fields.List(fields.Dict(), required=True)
     activities = fields.List(fields.Dict(), required=True)
     notices = fields.List(fields.Dict(), required=True)
+
+
+class AdminDashboardResponseSchema(Schema):
+    kpis = fields.Dict(required=True)
+    series = fields.Dict(required=True)
+    role_distribution = fields.List(fields.Dict(), required=True)
+    recent_activities = fields.List(fields.Dict(), required=True)
+    technical = fields.Dict(required=True)

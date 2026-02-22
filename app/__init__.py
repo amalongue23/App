@@ -88,3 +88,32 @@ def _ensure_runtime_schema():
             with db.engine.begin() as conn:
                 for statement in statements:
                     conn.exec_driver_sql(statement)
+    if "students" in tables:
+        columns = {c["name"] for c in inspector.get_columns("students")}
+        statements = []
+        if "academic_level" not in columns:
+            statements.append("ALTER TABLE students ADD COLUMN academic_level VARCHAR(40) NULL")
+        if statements:
+            with db.engine.begin() as conn:
+                for statement in statements:
+                    conn.exec_driver_sql(statement)
+                conn.exec_driver_sql(
+                    "UPDATE students SET academic_level = 'LICENCIATURA_1' WHERE academic_level IS NULL OR academic_level = ''"
+                )
+    if "student_controls" in tables:
+        columns = {c["name"] for c in inspector.get_columns("student_controls")}
+        statements = []
+        if "academic_level" not in columns:
+            statements.append("ALTER TABLE student_controls ADD COLUMN academic_level VARCHAR(40) NULL")
+        if statements:
+            with db.engine.begin() as conn:
+                for statement in statements:
+                    conn.exec_driver_sql(statement)
+                conn.exec_driver_sql(
+                    """
+                    UPDATE student_controls sc
+                    JOIN students s ON s.id = sc.student_id
+                    SET sc.academic_level = COALESCE(sc.academic_level, s.academic_level, 'LICENCIATURA_1')
+                    WHERE sc.academic_level IS NULL OR sc.academic_level = ''
+                    """
+                )

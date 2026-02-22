@@ -42,6 +42,9 @@ export const useAuthStore = defineStore('auth', {
       const user = {
         username: claims.username || username,
         role: claims.role || null,
+        full_name: claims.full_name || claims.name || response.data?.user?.full_name || response.data?.user?.name || '',
+        name: claims.name || response.data?.user?.name || claims.full_name || '',
+        photo_url: claims.photo_url || claims.avatar_url || response.data?.user?.photo_url || response.data?.user?.avatar_url || '',
       }
 
       this.token = token

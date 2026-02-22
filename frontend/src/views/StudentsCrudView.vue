@@ -11,6 +11,7 @@
             <input v-model="createForm.registration_number" placeholder="Matrícula" required />
             <input v-model="createForm.email" type="email" placeholder="Email" required />
             <input v-model.number="createForm.department_id" type="number" min="1" placeholder="Department ID" required />
+            <input v-model="createForm.academic_level" placeholder="Ano (ex: LICENCIATURA_1)" required />
             <button class="btn btn-primary" type="submit">Criar</button>
           </form>
         </article>
@@ -23,6 +24,7 @@
             <input v-model="updateForm.registration_number" placeholder="Matrícula" />
             <input v-model="updateForm.email" type="email" placeholder="Email" />
             <input v-model.number="updateForm.department_id" type="number" min="1" placeholder="Department ID" />
+            <input v-model="updateForm.academic_level" placeholder="Ano (ex: MESTRADO_1)" />
             <button class="btn btn-primary" type="submit">Atualizar</button>
           </form>
         </article>
@@ -87,8 +89,8 @@ const pageSize = 6
 const sortBy = ref('id')
 const sortDir = ref('asc')
 
-const createForm = reactive({ full_name: '', registration_number: '', email: '', department_id: '' })
-const updateForm = reactive({ id: '', full_name: '', registration_number: '', email: '', department_id: '' })
+const createForm = reactive({ full_name: '', registration_number: '', email: '', department_id: '', academic_level: 'LICENCIATURA_1' })
+const updateForm = reactive({ id: '', full_name: '', registration_number: '', email: '', department_id: '', academic_level: '' })
 
 const filteredItems = computed(() => {
   const q = searchTerm.value.trim().toLowerCase()
@@ -177,6 +179,7 @@ async function updateStudent() {
     if (updateForm.registration_number) payload.registration_number = updateForm.registration_number
     if (updateForm.email) payload.email = updateForm.email
     if (updateForm.department_id) payload.department_id = updateForm.department_id
+    if (updateForm.academic_level) payload.academic_level = updateForm.academic_level
     await api.put(`/api/students/${updateForm.id}`, payload)
     successMessage.value = 'Estudante atualizado com sucesso.'
     if (departmentFilterId.value) await listByDepartment()

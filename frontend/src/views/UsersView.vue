@@ -11,6 +11,7 @@
         <div class="users-v2-head-actions">
           <button class="btn btn-primary" type="button" @click="goToCreateUser">+ Novo Usuário</button>
           <input v-model="searchTerm" placeholder="Pesquisar..." />
+          <DashboardUserMenu compact />
         </div>
       </header>
 
@@ -74,6 +75,7 @@ import axios from 'axios'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+import DashboardUserMenu from '../components/DashboardUserMenu.vue'
 import SideNav from '../components/SideNav.vue'
 import api from '../services/api'
 import { useAuthStore } from '../stores/auth'

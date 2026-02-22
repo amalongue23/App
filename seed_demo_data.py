@@ -1,3 +1,4 @@
+import argparse
 from datetime import date, datetime
 from random import Random
 
@@ -20,8 +21,28 @@ from app.models.user_scope import UserScope
 
 DEFAULT_PASSWORD = "123456"
 RAND = Random(42)
+DEFAULT_STUDENTS_PER_DEPARTMENT = 60
 
-YEARS = ["2024-2025", "2025-2026"]
+YEARS = [
+    "2017-2018",
+    "2018-2019",
+    "2019-2020",
+    "2020-2021",
+    "2021-2022",
+    "2022-2023",
+    "2023-2024",
+    "2024-2025",
+    "2025-2026",
+]
+ACADEMIC_LEVELS = [
+    "LICENCIATURA_1",
+    "LICENCIATURA_2",
+    "LICENCIATURA_3",
+    "LICENCIATURA_4",
+    "LICENCIATURA_5",
+    "MESTRADO_1",
+    "MESTRADO_2",
+]
 
 SEED_STRUCTURE = [
     {
@@ -216,6 +237,7 @@ def ensure_students(department: Department, count: int = 60):
                 course_id=course_id,
                 birth_date=date(2000 + (idx % 5), ((idx % 12) + 1), ((idx % 28) + 1)),
                 sex="M" if idx % 2 == 0 else "F",
+                academic_level=ACADEMIC_LEVELS[(idx - 1) % len(ACADEMIC_LEVELS)],
             )
         )
 
@@ -246,6 +268,7 @@ def ensure_student_controls(department: Department, years: list[AcademicYear]):
             control = StudentControl.query.filter_by(student_id=student.id, academic_year_id=year.id).first()
             if control:
                 control.status = status
+                control.academic_level = student.academic_level
                 control.updated_at = datetime.utcnow()
                 continue
             db.session.add(
@@ -253,6 +276,7 @@ def ensure_student_controls(department: Department, years: list[AcademicYear]):
                     student_id=student.id,
                     academic_year_id=year.id,
                     status=status,
+                    academic_level=student.academic_level,
                     updated_at=datetime.utcnow(),
                 )
             )
@@ -263,7 +287,7 @@ def ensure_course_results(department: Department, years: list[AcademicYear]):
     for year in years:
         term = year.year_label
         for course in courses:
-            for month in range(1, 7):
+            for month in range(1, 13):
                 result = CourseResult.query.filter_by(
                     course_id=course.id,
                     academic_year_id=year.id,
@@ -330,10 +354,13 @@ def ensure_notices(department: Department):
         )
 
 
-def seed() -> None:
+def seed(students_per_department: int = DEFAULT_STUDENTS_PER_DEPARTMENT) -> None:
     app = create_app()
     with app.app_context():
         years = [get_or_create_academic_year(y) for y in YEARS]
+        latest_label = YEARS[-1]
+        for year in AcademicYear.query.all():
+            year.is_open = year.year_label == latest_label
 
         for admin in ADMIN_USERS:
             get_or_create_user(admin)
@@ -355,7 +382,7 @@ def seed() -> None:
 
                 db.session.flush()
                 ensure_professors(department)
-                ensure_students(department, count=60)
+                ensure_students(department, count=students_per_department)
                 db.session.flush()
                 ensure_student_controls(department, years)
                 ensure_course_results(department, years)
@@ -366,7 +393,20 @@ def seed() -> None:
 
         print("SEED_OK")
         print("default_password=123456")
+        print(f"students_per_department={students_per_department}")
+
+
+def _parse_args():
+    parser = argparse.ArgumentParser(description="Seed de dados demo MPUNA/Unistats")
+    parser.add_argument(
+        "--students-per-department",
+        type=int,
+        default=DEFAULT_STUDENTS_PER_DEPARTMENT,
+        help=f"Quantidade de estudantes por departamento (default: {DEFAULT_STUDENTS_PER_DEPARTMENT})",
+    )
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    seed()
+    args = _parse_args()
+    seed(students_per_department=max(1, int(args.students_per_department)))

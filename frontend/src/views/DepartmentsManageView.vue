@@ -11,6 +11,7 @@
         <div class="departments-v2-head-actions">
           <router-link class="btn btn-primary" to="/departments/create">+ Novo Departamento</router-link>
           <button class="btn btn-ghost" type="button" @click="exportCsv">Exportar</button>
+          <DashboardUserMenu compact />
         </div>
       </header>
 
@@ -101,6 +102,7 @@ import axios from 'axios'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import DashboardUserMenu from '../components/DashboardUserMenu.vue'
 import SideNav from '../components/SideNav.vue'
 import api from '../services/api'
 

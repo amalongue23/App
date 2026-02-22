@@ -123,7 +123,7 @@ function isActive(key) {
   const name = String(route.name || '')
   if (key === 'dashboard') return name.startsWith('dashboard')
   if (key === 'statistics') return name === 'statistics'
-  if (key === 'academic-years') return name === 'academic-years'
+  if (key === 'academic-years') return name === 'academic-years' || name === 'academic-years-new'
   if (key === 'operations') return name === 'operations'
   if (key === 'units') return name.startsWith('units-')
   if (key === 'departments') return name.startsWith('departments-')

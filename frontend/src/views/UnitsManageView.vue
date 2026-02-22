@@ -5,12 +5,7 @@
     <section class="content-area units-content">
       <header class="units-topbar">
         <div class="units-tenant">Restauro Admin</div>
-        <div class="units-icons">
-          <span class="top-icon"></span>
-          <span class="top-icon"></span>
-          <span class="top-icon"></span>
-          <span class="units-avatar">{{ initials }}</span>
-        </div>
+        <DashboardUserMenu />
       </header>
 
       <h1 class="units-title">Gerir Unidades Orgânicas</h1>
@@ -78,13 +73,8 @@
 </template>
 <script setup>
 import axios from 'axios'; import { computed, onMounted, reactive, ref, watch } from 'vue'
+import DashboardUserMenu from '../components/DashboardUserMenu.vue'
 import SideNav from '../components/SideNav.vue'; import api from '../services/api'
-import { useAuthStore } from '../stores/auth'
-const authStore = useAuthStore()
-const initials = computed(() => {
-  const name = authStore.user?.username || 'UL'
-  return name.slice(0, 2).toUpperCase()
-})
 const items=ref([]), selectedItem=ref(null), searchTerm=ref(''), currentPage=ref(1), successMessage=ref(''), errorMessage=ref(''), sortBy=ref('id'), sortDir=ref('asc'); const pageSize=6
 const updateForm=reactive({ name:'', code:'', description:'' })
 const err=(e)=>axios.isAxiosError(e)?(e.response?.data?.message||'Erro na operação.'):'Erro na operação.'
