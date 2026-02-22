@@ -20,6 +20,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
+    image: mpuna-backend:1.0.0
     container_name: mpuna-backend
     environment:
       DATABASE_URL: mysql+pymysql://root@db:3306/mpuna
@@ -37,6 +38,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: http://localhost:5000
+    image: mpuna-frontend:1.0.0
     container_name: mpuna-frontend
     ports:
       - "5173:80"
