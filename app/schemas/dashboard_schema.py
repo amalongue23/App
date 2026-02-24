@@ -1,4 +1,15 @@
+
 from marshmallow import Schema, fields
+
+class DirectorDashboardStatisticsSchema(Schema):
+    unit = fields.Dict(required=True)
+    kpis = fields.Dict(required=True)
+    performance = fields.List(fields.Dict(), required=True)
+    trends = fields.List(fields.Dict(), required=True)
+    departments = fields.List(fields.Dict(), required=True)
+    activities = fields.List(fields.Dict(), required=True)
+    notices = fields.List(fields.Dict(), required=True)
+    statistics = fields.Dict(required=True)
 
 
 class ChiefDashboardQuerySchema(Schema):

@@ -1,14 +1,15 @@
 services:
   db:
     image: mysql:8.0
-    container_name: mpuna-mysql
+    container_name: unistats-mysql
     environment:
-      MYSQL_DATABASE: mpuna
+      MYSQL_DATABASE: unistats
+      MYSQL_ROOT_PASSWORD: ""
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     ports:
       - "3307:3306"
     volumes:
-      - mpuna_db_data:/var/lib/mysql
+      - unistats_db_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
       interval: 5s
@@ -20,10 +21,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
-    image: mpuna-backend:1.0.0
-    container_name: mpuna-backend
+    image: unistats-backend:1.0.1
+    container_name: unistats-backend
     environment:
-      DATABASE_URL: mysql+pymysql://root@db:3306/mpuna
+      DATABASE_URL: mysql+pymysql://root@db:3306/unistats
       JWT_SECRET_KEY: change-this-in-production
     ports:
       - "5000:5000"
@@ -38,12 +39,12 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: http://localhost:5000
-    image: mpuna-frontend:1.0.0
-    container_name: mpuna-frontend
+    image: unistats-frontend:1.0.1
+    container_name: unistats-frontend
     ports:
       - "5173:80"
     depends_on:
       - backend
 
 volumes:
-  mpuna_db_data:
+  unistats_db_data:

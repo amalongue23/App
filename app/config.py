@@ -11,7 +11,7 @@ class Config:
 
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
-        "mysql+pymysql://root:@localhost:3306/mpuna",
+        "mysql+pymysql://root:@localhost:3306/unistats",
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

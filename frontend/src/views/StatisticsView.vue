@@ -359,7 +359,7 @@ function approvalRate(row) {
 
 function endpointByRole() {
   if (authStore.user?.role === 'REITOR' || authStore.user?.role === 'ADMIN') return '/api/dashboard/reitor'
-  if (authStore.user?.role === 'DIRETOR') return '/api/dashboard/director'
+  if (authStore.user?.role === 'DIRETOR') return '/api/statistics/director'
   return '/api/dashboard/chief'
 }
 
@@ -393,10 +393,19 @@ async function loadStatistics() {
   })
 
   const payload = response.data || {}
-  dashboard.kpis.students = payload.kpis?.students || 0
-  dashboard.kpis.courses = payload.kpis?.courses || 0
-  dashboard.performance = payload.performance || []
-  dashboard.statistics = payload.statistics || dashboard.statistics
+  // Mapeamento para DIRETOR
+  if (authStore.user?.role === 'DIRETOR') {
+    dashboard.kpis.students = payload.kpis?.students || 0
+    dashboard.kpis.courses = payload.kpis?.courses || 0
+    dashboard.performance = payload.performance || []
+    dashboard.statistics = payload.statistics || dashboard.statistics
+    // Adicione outros campos conforme necessário para os gráficos
+  } else {
+    dashboard.kpis.students = payload.kpis?.students || 0
+    dashboard.kpis.courses = payload.kpis?.courses || 0
+    dashboard.performance = payload.performance || []
+    dashboard.statistics = payload.statistics || dashboard.statistics
+  }
 }
 
 async function onAcademicYearChange() {

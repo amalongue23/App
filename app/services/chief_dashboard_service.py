@@ -1,3 +1,97 @@
+def get_director_dashboard_statistics(
+        self,
+        user_id: int,
+        ano_academico_id: int,
+        ano_lectivo: str,
+        unit_id=None,
+        department_id=None,
+        course_id=None,
+        nivel_academico=None,
+        faixa_etaria=None,
+        sexo=None,
+    ):
+        user = self._get_user(user_id)
+        if user.role != "DIRETOR":
+            abort(403, message="Only DIRETOR profile can access this dashboard")
+        self._validate_period(ano_academico_id, ano_lectivo)
+        scope_filter = self._apply_scope_filters(self._base_scope(user), unit_id, department_id, course_id)
+        if not scope_filter["unit_ids"]:
+            abort(404, message="No unit scope available")
+        unit = OrganizationalUnit.query.get(scope_filter["unit_ids"][0])
+        if not unit:
+            abort(404, message="Unit not found")
+        students = (
+            db.session.query(db.func.count(StudentControl.id))
+            .join(Student, Student.id == StudentControl.student_id)
+            .filter(
+                Student.department_id.in_(scope_filter["department_ids"] or [-1]),
+                StudentControl.academic_year_id == ano_academico_id,
+                StudentControl.status == "active",
+            )
+            .scalar()
+            or 0
+        )
+        courses_count = Course.query.filter(Course.id.in_(scope_filter["course_ids"] or [-1])).count()
+        professors_count = Professor.query.filter(Professor.department_id.in_(scope_filter["department_ids"] or [-1])).count()
+        departments_count = len(scope_filter["department_ids"])
+        performance, trends = self._performance_for_scope(scope_filter, ano_academico_id, ano_lectivo)
+        dep_summary_rows = (
+            db.session.query(
+                Department.id,
+                Department.name,
+                db.func.count(db.distinct(Student.id)),
+                db.func.count(db.distinct(Course.id)),
+            )
+            .outerjoin(Student, Student.department_id == Department.id)
+            .outerjoin(Course, Course.department_id == Department.id)
+            .filter(Department.id.in_(scope_filter["department_ids"] or [-1]))
+            .group_by(Department.id, Department.name)
+            .all()
+        )
+        departments = [
+            {
+                "department_id": row[0],
+                "department_name": row[1],
+                "students": int(row[2] or 0),
+                "courses": int(row[3] or 0),
+            }
+            for row in dep_summary_rows
+        ]
+        activities = (
+            ActivityLog.query.filter(ActivityLog.department_id.in_(scope_filter["department_ids"] or [-1]))
+            .order_by(ActivityLog.created_at.desc())
+            .limit(6)
+            .all()
+        )
+        notices = (
+            DepartmentNotice.query.filter(DepartmentNotice.department_id.in_(scope_filter["department_ids"] or [-1]))
+            .order_by(DepartmentNotice.published_at.desc())
+            .limit(6)
+            .all()
+        )
+        # Dados agregados para estatísticas
+        statistics = self._chief_statistics(scope_filter, ano_academico_id, ano_lectivo)
+        return {
+            "unit": {"id": unit.id, "name": unit.name, "code": unit.code},
+            "kpis": {
+                "students": int(students),
+                "courses": int(courses_count),
+                "professors": int(professors_count),
+                "departments": int(departments_count),
+            },
+            "performance": performance,
+            "trends": trends,
+            "departments": departments,
+            "activities": [
+                {"actor": activity.actor_name, "message": activity.message, "created_at": activity.created_at.isoformat()}
+                for activity in activities
+            ],
+            "notices": [
+                {"title": notice.title, "content": notice.content, "published_at": notice.published_at.isoformat()}
+                for notice in notices
+            ],
+            "statistics": statistics,
+        }
 import os
 import time
 from collections import defaultdict
