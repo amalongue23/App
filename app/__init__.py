@@ -24,10 +24,10 @@ def _seed_default_rector_user():
         return
 
     default_user = User(
-        full_name="System Reitor",
+        full_name="Administrador",
         username="admin",
         password_hash=generate_password_hash("admin123"),
-        role="REITOR",
+        role="ADMIN",
         is_active=True,
     )
     db.session.add(default_user)

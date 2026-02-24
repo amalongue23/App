@@ -2236,10 +2236,10 @@ USE `test`;
 USE `estoque`;
 
 --
--- Current Database: `mpuna`
+-- Current Database: `unistats`
 --
 
-USE `mpuna`;
+USE `unistats`;
 
 --
 -- Current Database: `mysql`

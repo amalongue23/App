@@ -232,7 +232,7 @@ def ensure_students(department: Department, count: int = 60):
             Student(
                 full_name=f"Aluno {department.code} {idx}",
                 registration_number=reg,
-                email=f"{department.code.lower()}.std{idx}@mpuna.local",
+                email=f"{department.code.lower()}.std{idx}@gmail.com",
                 department_id=department.id,
                 course_id=course_id,
                 birth_date=date(2000 + (idx % 5), ((idx % 12) + 1), ((idx % 28) + 1)),

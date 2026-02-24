@@ -4,7 +4,7 @@ services:
     container_name: unistats-mysql
     environment:
       MYSQL_DATABASE: unistats
-      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_ROOT_PASSWORD: "123"
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     ports:
       - "3307:3306"
@@ -24,7 +24,7 @@ services:
     image: unistats-backend:1.0.1
     container_name: unistats-backend
     environment:
-      DATABASE_URL: mysql+pymysql://root@db:3306/unistats
+      DATABASE_URL: mysql+pymysql://root:123@db:3306/unistats
       JWT_SECRET_KEY: change-this-in-production
     ports:
       - "5000:5000"
